@@ -11,7 +11,8 @@ setup(
     version=VERSION,
     author='Mark E. Turiansky',
     author_email='mturiansky@physics.ucsb.edu',
-    description='',
+    description=('Implementation for computing nonradiative recombination '
+                 'rates in semiconductors'),
     long_description=long_desc,
     long_description_content_type='text/markdown',
     url='https://github.com/mturiansky/nonrad',
@@ -21,6 +22,7 @@ setup(
               'Shockley-Read-Hall'],
     classifiers=[
         'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent'
     ],
 )
