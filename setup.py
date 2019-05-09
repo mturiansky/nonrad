@@ -18,6 +18,9 @@ setup(
     url='https://github.com/mturiansky/nonrad',
     packages=find_packages(),
     install_requires=['numpy', 'scipy'],
+    extras_require={
+        'dev': ['nose2', 'coverage', 'six']
+    },
     keywords=['physics', 'materials', 'science', 'VASP', 'recombination',
               'Shockley-Read-Hall'],
     classifiers=[
