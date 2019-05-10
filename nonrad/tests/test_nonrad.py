@@ -69,12 +69,12 @@ class OverlapTest(unittest.TestCase):
 class GetCTest(unittest.TestCase):
     def setUp(self):
         self.args = {
-            'DQ': 2.008,
-            'DE': 1.0102,
-            'w1': 0.0306775211118,
-            'w2': 0.0339920265573,
-            'V': 0.00669174,
-            'Omega': 1.1e-21,
+            'dQ': 2.008,
+            'dE': 1.0102,
+            'wi': 0.0306775211118,
+            'wf': 0.0339920265573,
+            'Wif': 0.00669174,
+            'volume': 1.1e-21,
             'g': 1,
             'T': 300,
             'sigma': None,
@@ -85,9 +85,9 @@ class GetCTest(unittest.TestCase):
         self.assertGreater(get_C(**self.args), 0.)
 
     def test_same_w(self):
-        self.args['w2'] = self.args['w1']
+        self.args['wf'] = self.args['wi']
         self.assertGreater(get_C(**self.args), 0.)
-        self.args['DQ'] = 0.
+        self.args['dQ'] = 0.
         self.assertLess(get_C(**self.args), 1e-20)
 
     def test_integrate(self):

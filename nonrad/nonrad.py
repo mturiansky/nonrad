@@ -4,22 +4,18 @@ from scipy.special import factorial
 from scipy.interpolate import interp1d
 from scipy import constants as const
 
-hbar = 4.135667662e-15 / 2 / np.pi      # in units of eV.s
-HBAR = const.hbar / const.e     # in units of eV.s
-eV2J = 1.60217662e-19                   # 1 eV in Joules
-EV2J = const.e                      # 1 eV in Joules
-amu2kg = 1.660539040e-27                # atomic mass unit in kg
+HBAR = const.hbar / const.e                     # in units of eV.s
+EV2J = const.e                                  # 1 eV in Joules
 AMU2KG = const.physical_constants['atomic mass constant'][0]
-angs2m = 1e-10                          # angstrom in meters
-ANGS2M = 1e-10                          # angstrom in meters
+ANGS2M = 1e-10                                  # angstrom in meters
 
-factor = 1/hbar/hbar/eV2J*amu2kg*angs2m*angs2m
-Factor2 = 6.351E12                      # hbar/1E-20/amu
-Factor3 = 1.52E15                       # e/hbar
+factor = ANGS2M**2 * AMU2KG / HBAR / HBAR / EV2J
+Factor2 = const.hbar / ANGS2M**2 / AMU2KG
+Factor3 = 1 / HBAR
 
 
 def fact(n):
-    """ wrapper for scaipy.special.factorial with exact=True """
+    """ wrapper for scipy.special.factorial with exact=True """
     return factorial(n, exact=True)
 
 
@@ -109,21 +105,27 @@ def analytic_overlap_NM(DQ, w1, w2, n1, n2):
     return Ix
 
 
-def get_C(DQ, DE, w1, w2, V, Omega, g=1, T=300, sigma=None,
+def get_C(dQ, dE, wi, wf, Wif, volume, g=1, T=300, sigma=None,
           overlap_method='analytic'):
     """
+    Compute the nonradiative capture coefficient.
+
+    This function computes the nonradiative capture coefficient following the
+    methodology of A. Alkauskas et al., Phys. Rev. B 90, 075202 (2014). The
+    resulting capture coefficient is unscaled [See Eq. (22) of the above
+    reference]. Our code assumes harmonic potential energy surfaces.
 
     Parameters
     ----------
-    DQ : float
+    dQ : float
         displacement between harmonic oscillators in amu^{1/2} Angstrom
-    DE : float
+    dE : float
         energy offset between the two harmonic oscillators
-    w1, w2 : float
+    wi, wf : float
         frequencies of the harmonic oscillators in eV
-    V : float
+    Wif : float
         electron-phonon coupling matrix element in eV amu^{-1/2} Angstrom^{-1}
-    Omega : float
+    volume : float
         volume of the supercell in m^3
     g : int
         degeneracy factor of the final state
@@ -144,7 +146,7 @@ def get_C(DQ, DE, w1, w2, V, Omega, g=1, T=300, sigma=None,
         overlap of the two harmonic oscillator wavefunctions
     """
     kT = (const.k / const.e) * T    # [(J / K) * (eV / J)] * K = eV
-    Z = 1. / (1 - np.exp(-w1 / kT))
+    Z = 1. / (1 - np.exp(-wi / kT))
 
     # these should be checked for consistency with temperature
     Ni, Nf = (17, 50)
@@ -154,42 +156,42 @@ def get_C(DQ, DE, w1, w2, V, Omega, g=1, T=300, sigma=None,
     for m in np.arange(Ni):
         for n in np.arange(Nf):
             if overlap_method.lower()[0] == 'a':
-                ovl[m, n] = analytic_overlap_NM(DQ, w1, w2, m, n)
+                ovl[m, n] = analytic_overlap_NM(dQ, wi, wf, m, n)
             elif overlap_method.lower()[0] == 'i':
-                ovl[m, n] = overlap_NM(DQ, w1, w2, m, n)
+                ovl[m, n] = overlap_NM(dQ, wi, wf, m, n)
 
-    t = np.linspace(0, Nf*w2, 1000)
+    t = np.linspace(0, Nf*wf, 1000)
     R = 0.
     for m in np.arange(Ni-1):
-        weight_m = np.exp(-m * w1 / kT) / Z
+        weight_m = np.exp(-m * wi / kT) / Z
         if sigma is None:
             # interpolation to replace delta functions
             E, matels = (np.zeros(Nf), np.zeros(Nf))
             for n in np.arange(Nf):
                 if m == 0:
-                    matel = np.sqrt(Factor2 / 2 / w1) * ovl[1, n] + \
-                        np.sqrt(Factor3) * DQ * ovl[0, n]
+                    matel = np.sqrt(Factor2 / 2 / wi) * ovl[1, n] + \
+                        np.sqrt(Factor3) * dQ * ovl[0, n]
                 else:
-                    matel = np.sqrt((m+1) * Factor2 / 2 / w1) * ovl[m+1, n] + \
-                        np.sqrt(m * Factor2 / 2 / w1) * ovl[m-1, n] + \
-                        np.sqrt(Factor3) * DQ * ovl[m, n]
-                E[n] = n*w2 - m*w1
+                    matel = np.sqrt((m+1) * Factor2 / 2 / wi) * ovl[m+1, n] + \
+                        np.sqrt(m * Factor2 / 2 / wi) * ovl[m-1, n] + \
+                        np.sqrt(Factor3) * dQ * ovl[m, n]
+                E[n] = n*wf - m*wi
                 matels[n] = np.abs(np.conj(matel) * matel)
             f = interp1d(E, matels, kind='cubic', bounds_error=False,
                          fill_value=0.)
-            R = R + weight_m * (f(DE) * np.sum(matels) / np.trapz(f(t), x=t))
+            R = R + weight_m * (f(dE) * np.sum(matels) / np.trapz(f(t), x=t))
         else:
             # gaussian smearing with given sigma to replace delta functions
             for n in np.arange(Nf):
                 # energy conservation delta function
-                delta = np.exp(-(DE+m*w1-n*w2)**2/(2.0*sigma**2)) / \
+                delta = np.exp(-(dE+m*wi-n*wf)**2/(2.0*sigma**2)) / \
                     (sigma*np.sqrt(2.0*np.pi))
                 if m == 0:
-                    matel = np.sqrt(Factor2 / 2 / w1) * ovl[1, n] + \
-                        np.sqrt(Factor3) * DQ * ovl[0, n]
+                    matel = np.sqrt(Factor2 / 2 / wi) * ovl[1, n] + \
+                        np.sqrt(Factor3) * dQ * ovl[0, n]
                 else:
-                    matel = np.sqrt((m+1) * Factor2 / 2 / w1) * ovl[m+1, n] + \
-                        np.sqrt(m * Factor2 / 2 / w1) * ovl[m-1, n] + \
-                        np.sqrt(Factor3) * DQ * ovl[m, n]
+                    matel = np.sqrt((m+1) * Factor2 / 2 / wi) * ovl[m+1, n] + \
+                        np.sqrt(m * Factor2 / 2 / wi) * ovl[m-1, n] + \
+                        np.sqrt(Factor3) * dQ * ovl[m, n]
                 R = R + weight_m * delta * np.abs(np.conj(matel) * matel)
-    return 2 * np.pi * g * V**2 * Omega * R
+    return 2 * np.pi * g * Wif**2 * volume * R
