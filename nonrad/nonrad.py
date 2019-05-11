@@ -1,8 +1,8 @@
 import numpy as np
 from numpy.polynomial.hermite import hermval
-from scipy.special import factorial
 from scipy.interpolate import interp1d
 from scipy import constants as const
+from numba import njit
 
 HBAR = const.hbar / const.e                     # in units of eV.s
 EV2J = const.e                                  # 1 eV in Joules
@@ -13,10 +13,37 @@ factor = ANGS2M**2 * AMU2KG / HBAR / HBAR / EV2J
 Factor2 = const.hbar / ANGS2M**2 / AMU2KG
 Factor3 = 1 / HBAR
 
+LOOKUP_TABLE = np.array([
+    1, 1, 2, 6, 24, 120, 720, 5040, 40320,
+    362880, 3628800, 39916800, 479001600,
+    6227020800, 87178291200, 1307674368000,
+    20922789888000, 355687428096000, 6402373705728000,
+    121645100408832000, 2432902008176640000], dtype=np.double)
 
+
+@njit
 def fact(n):
-    """ wrapper for scipy.special.factorial with exact=True """
-    return factorial(n, exact=True)
+    if n > 20:
+        return LOOKUP_TABLE[-1] * \
+            np.prod(np.array(list(range(21, n+1)), dtype=np.double))
+    return LOOKUP_TABLE[n]
+
+
+@njit
+def herm(x, n):
+    """ recursive definition of hermite polynomial """
+    if n == 0:
+        return 1.
+    elif n == 1:
+        return 2. * x
+    y1 = 2. * x
+    dy1 = 2.
+    for i in range(2, n+1):
+        yn = 2. * x * y1 - dy1
+        dyn = 2. * i * y1
+        y1 = yn
+        dy1 = dyn
+    return yn
 
 
 def overlap_NM(DQ, w1, w2, n1, n2):
@@ -44,7 +71,7 @@ def overlap_NM(DQ, w1, w2, n1, n2):
     """
     # note: -30 to 30 is an arbitrary region. It should be sufficient, but
     # we should probably check this to be safe. 1000 is arbitrary also.
-    QQ = np.linspace(-30, 30, 1000, dtype=np.longdouble)
+    QQ = np.linspace(-30, 30, 1000, dtype=np.double)
 
     Hn1Q = hermval(np.sqrt(factor*w1)*(QQ-DQ), [0.]*n1 + [1.])
     Hn2Q = hermval(np.sqrt(factor*w2)*(QQ), [0.]*n2 + [1.])
@@ -57,6 +84,7 @@ def overlap_NM(DQ, w1, w2, n1, n2):
     return np.trapz(wfn2*wfn1, x=QQ)
 
 
+@njit
 def analytic_overlap_NM(DQ, w1, w2, n1, n2):
     """
     Compute the overlap between two displaced harmonic oscillators.
@@ -81,7 +109,7 @@ def analytic_overlap_NM(DQ, w1, w2, n1, n2):
     np.longdouble
         overlap of the two harmonic oscillator wavefunctions
     """
-    w = np.longdouble(w1 * w2 / (w1 + w2))
+    w = np.double(w1 * w2 / (w1 + w2))
     rho = np.sqrt(factor) * np.sqrt(w / 2) * DQ
     sinfi = np.sqrt(w1) / np.sqrt(w1 + w2)
     cosfi = np.sqrt(w2) / np.sqrt(w1 + w2)
@@ -100,7 +128,8 @@ def analytic_overlap_NM(DQ, w1, w2, n1, n2):
                 (fact(k)*fact(l)*fact(k1-kx)*fact(l1-lx)) * \
                 2**((k + l - n2 - n1) / 2)
             Pr3 = (sinfi**k)*(cosfi**l)
-            f = hermval(rho, [0.]*(k+l) + [1.])
+            # f = hermval(rho, [0.]*(k+l) + [1.])
+            f = herm(np.float64(rho), k+l)
             Ix = Ix + Pr1*Pr2*Pr3*f
     return Ix
 
