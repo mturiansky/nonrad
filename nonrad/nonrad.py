@@ -2,7 +2,11 @@ import numpy as np
 from numpy.polynomial.hermite import hermval
 from scipy.interpolate import interp1d
 from scipy import constants as const
-from numba import njit
+try:
+    from numba import njit
+except ModuleNotFoundError:
+    def njit(func):
+        return func
 
 HBAR = const.hbar / const.e                     # in units of eV.s
 EV2J = const.e                                  # 1 eV in Joules
