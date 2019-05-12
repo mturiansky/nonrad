@@ -1,14 +1,12 @@
 import unittest
 import numpy as np
 from itertools import product
-from nonrad.nonrad import fact, overlap_NM, analytic_overlap_NM, get_C
+from scipy.special import factorial
+from numpy.polynomial.hermite import hermval
+from nonrad.nonrad import fact, herm, overlap_NM, analytic_overlap_NM, get_C
 
 
 class OverlapTest(unittest.TestCase):
-    def test_fact(self):
-        for i, j in enumerate([1, 1, 2, 6, 24, 120]):
-            self.assertEqual(fact(i), j)
-
     def test_overlap_NM(self):
         DQ, w1, w2 = (0.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
@@ -111,3 +109,16 @@ class GetCTest(unittest.TestCase):
         self.args['T'] = [300]
         with self.assertRaises(TypeError):
             get_C(**self.args)
+
+
+class MathTest(unittest.TestCase):
+    def test_fact(self):
+        for i in range(171):
+            exact = np.double(factorial(i, exact=True))
+            self.assertAlmostEqual(fact(i)/exact - 1, 0.)
+
+    def test_herm(self):
+        for x in np.linspace(0.1, 1., 50):
+            for i in range(70):
+                exact = hermval(x, [0.]*i + [1.])
+                self.assertAlmostEqual(herm(x, i)/exact - 1, 0.)
