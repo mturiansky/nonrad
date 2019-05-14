@@ -17,9 +17,10 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/mturiansky/nonrad',
     packages=find_packages(),
-    install_requires=['numpy', 'scipy'],
+    install_requires=['numpy', 'scipy', 'pymatgen'],
     extras_require={
-        'dev': ['nose2', 'coverage', 'six']
+        'dev': ['nose2', 'coverage'],
+        'fast': ['numba']
     },
     keywords=['physics', 'materials', 'science', 'VASP', 'recombination',
               'Shockley-Read-Hall'],
