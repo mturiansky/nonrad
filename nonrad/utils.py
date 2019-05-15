@@ -36,8 +36,8 @@ def get_cc_structures(ground, excited, displacements, remove_zero=True):
     displacements = np.array(displacements)
     if remove_zero:
         displacements = displacements[displacements != 0.]
-    ground_structs = ground.interpolate(excited, ximages=displacements)
-    excited_structs = ground.interpolate(excited, ximages=(displacements + 1.))
+    ground_structs = ground.interpolate(excited, nimages=displacements)
+    excited_structs = ground.interpolate(excited, nimages=(displacements + 1.))
     return ground_structs, excited_structs
 
 
