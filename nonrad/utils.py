@@ -1,6 +1,8 @@
 import numpy as np
 from itertools import groupby
 from pymatgen.io.vasp.outputs import Vasprun
+from scipy.optimize import curve_fit
+from nonrad.nonrad import HBAR, EV2J, AMU2KG, ANGS2M
 
 
 def get_cc_structures(ground, excited, displacements, remove_zero=True):
@@ -51,7 +53,7 @@ def get_dQ(ground, excited):
     Returns
     -------
     float
-        the dQ value
+        the dQ value (amu^{1/2} Angstrom)
     """
     return np.sqrt(np.sum(list(map(
         lambda x: x[0].distance(x[1])**2 * x[0].specie.atomic_mass,
@@ -82,7 +84,7 @@ def get_Q_from_struct(ground, excited, struct, tol=0.001):
     Returns
     -------
     float
-        the Q value of the structure
+        the Q value (amu^{1/2} Angstrom) of the structure
     """
     dQ = get_dQ(ground, excited)
     possible_x = []
@@ -116,9 +118,9 @@ def get_PES_from_vaspruns(ground, excited, vasprun_paths):
     Returns
     -------
     Q : np.array(float)
-        array of Q values corresponding to each vasprun
+        array of Q values (amu^{1/2} Angstrom) corresponding to each vasprun
     energy : np.array(float)
-        array of energies corresponding to each vasprun
+        array of energies (eV) corresponding to each vasprun
     """
     num = len(vasprun_paths)
     Q, energy = (np.zeros(num), np.zeros(num))
@@ -129,5 +131,37 @@ def get_PES_from_vaspruns(ground, excited, vasprun_paths):
     return Q, (energy - np.min(energy))
 
 
-def get_omega_from_PES(Q, energy):
-    pass
+def get_omega_from_PES(Q, energy, Q0=None, ax=None):
+    """
+    Calculates the harmonic phonon frequency for the given PES.
+
+    Parameters
+    ----------
+    Q : np.array(float)
+        array of Q values (amu^{1/2} Angstrom) corresponding to each vasprun
+    energy : np.array(float)
+        array of energies (eV) corresponding to each vasprun
+    Q0 : float
+        fix the minimum of the parabola (default is None)
+    ax : matplotlib.axes.Axes
+        optional axis object to plot the resulting fit (default is None)
+
+    Returns
+    -------
+    float
+        harmonic phonon frequency from the PES in eV
+    """
+    def f(Q, omega, Q0, dE):
+        return 0.5 * omega * (Q - Q0)**2 + dE
+
+    # set bounds to restrict Q0 to the given Q0 value
+    bounds = (-np.inf, np.inf) if Q0 is None else \
+        ([-np.inf, Q0 - 1e-10, -np.inf], [np.inf, Q0, np.inf])
+    popt, pcov = curve_fit(f, Q, energy, bounds=bounds)
+
+    # optional plotting to check fit
+    if ax is not None:
+        q = np.linspace(np.min(Q), np.max(Q), 1000)
+        ax.plot(q, f(q, *popt))
+
+    return HBAR * np.sqrt(popt[0] * EV2J / (ANGS2M**2 * AMU2KG))
