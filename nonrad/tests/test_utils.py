@@ -3,11 +3,29 @@ import warnings
 import pymatgen as pmg
 import numpy as np
 from pathlib import Path
+from itertools import product
+from nonrad.nonrad import HBAR, EV2J, AMU2KG, ANGS2M
 from nonrad.utils import get_cc_structures, get_dQ, get_Q_from_struct, \
-    get_PES_from_vaspruns
+    get_PES_from_vaspruns, get_omega_from_PES, _compute_matel
 
 
 TEST_FILES = Path(__file__).absolute().parent / '..' / '..' / 'test_files'
+
+
+class FakeAx:
+    def plot(*args, **kwargs):
+        pass
+
+    def scatter(*args, **kwargs):
+        pass
+
+    def set_title(*args, **kwargs):
+        pass
+
+
+class FakeFig:
+    def subplots(x, y, **kwargs):
+        return [FakeAx() for _ in range(y)]
 
 
 class UtilsTest(unittest.TestCase):
@@ -66,3 +84,28 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(len(en), 2)
         self.assertEqual(np.min(en), 0.)
         self.assertEqual(en[0], 0.)
+
+    def test_get_omega_from_PES(self):
+        q = np.linspace(-0.5, 0.5, 20)
+        for om, q0 in zip(np.linspace(0.01, 0.1, 10),
+                          np.linspace(0.1, 3., 10)):
+            omega = (om / HBAR)**2 * ANGS2M**2 * AMU2KG / EV2J
+            en = 0.5 * omega * (q - q0)**2
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                self.assertAlmostEqual(get_omega_from_PES(q, en), om)
+                self.assertAlmostEqual(get_omega_from_PES(q, en, Q0=q0), om)
+        self.assertAlmostEqual(get_omega_from_PES(q, en, Q0=q0, ax=FakeAx()),
+                               om)
+
+    def test__compute_matel(self):
+        N = 10
+        H = np.random.rand(N, N).astype(np.complex) + \
+            1j*np.random.rand(N, N).astype(np.complex)
+        H = H + np.conj(H).T
+        _, ev = np.linalg.eigh(H)
+        for i, j in product(range(N), range(N)):
+            if i == j:
+                self.assertAlmostEqual(_compute_matel(ev[:, i], ev[:, j]), 1.)
+            else:
+                self.assertAlmostEqual(_compute_matel(ev[:, i], ev[:, j]), 0.)
