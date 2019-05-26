@@ -120,6 +120,7 @@ class UtilsTest(unittest.TestCase):
             else:
                 self.assertAlmostEqual(_compute_matel(ev[:, i], ev[:, j]), 0.)
 
+    @unittest.skip('WAVECARs too large to share')
     def test_get_Wif_from_wavecars(self):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
