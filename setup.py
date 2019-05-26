@@ -17,7 +17,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/mturiansky/nonrad',
     packages=find_packages(),
-    install_requires=['numpy', 'scipy', 'pymatgen'],
+    install_requires=['numpy', 'scipy', 'pymatgen', 'monty'],
     extras_require={
         'dev': ['nose2', 'coverage'],
         'fast': ['numba']

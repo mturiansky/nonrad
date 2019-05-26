@@ -3,6 +3,7 @@ import numpy as np
 from itertools import groupby
 from pymatgen.io.vasp.outputs import Vasprun, BSVasprun, Wavecar
 from pymatgen.electronic_structure.core import Spin
+from monty.io import zopen
 from scipy.optimize import curve_fit
 from nonrad.nonrad import HBAR, EV2J, AMU2KG, ANGS2M
 
@@ -293,13 +294,14 @@ def _read_WSWQ(fname):
     """
     wswq = {}
     current = None
-    with open(fname, 'r') as f:
+    with zopen(fname, 'r') as f:
         for line in f:
             spin_kpoint = \
-                re.search(r'\s*spin=(\d+), kpoint=\s*(\d+)', line)
+                re.search(r'\s*spin=(\d+), kpoint=\s*(\d+)', str(line))
             data = \
                 re.search(r'i=\s*(\d+), '
-                          r'j=\s*(\d+)\s*:\s*([0-9\-.]+)\s+([0-9\-.]+)', line)
+                          r'j=\s*(\d+)\s*:\s*([0-9\-.]+)\s+([0-9\-.]+)',
+                          str(line))
             if spin_kpoint:
                 current = \
                     (int(spin_kpoint.group(1)), int(spin_kpoint.group(2)))
