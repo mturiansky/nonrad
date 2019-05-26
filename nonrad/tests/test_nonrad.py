@@ -3,8 +3,7 @@ import numpy as np
 from itertools import product
 from scipy.special import factorial
 from numpy.polynomial.hermite import hermval
-from nonrad.nonrad import fact, herm, overlap_NM, analytic_overlap_NM, get_C, \
-    sommerfeld_parameter
+from nonrad.nonrad import fact, herm, overlap_NM, analytic_overlap_NM, get_C
 
 
 class OverlapTest(unittest.TestCase):
@@ -110,35 +109,6 @@ class GetCTest(unittest.TestCase):
         self.args['T'] = [300]
         with self.assertRaises(TypeError):
             get_C(**self.args)
-
-
-class ScalingTest(unittest.TestCase):
-    def setUp(self):
-        self.args = {
-            'T': 300,
-            'Z': 0,
-            'm_eff': 1.,
-            'eps0': 1.
-        }
-
-    def test_neutral(self):
-        self.assertAlmostEqual(sommerfeld_parameter(**self.args), 1.)
-
-    def test_attractive(self):
-        self.args['Z'] = -1
-        self.assertGreater(sommerfeld_parameter(**self.args), 1.)
-
-    def test_repulsive(self):
-        self.args['Z'] = 1
-        self.assertLess(sommerfeld_parameter(**self.args), 1.)
-
-    def test_list(self):
-        self.args['T'] = np.linspace(0.1, 1000, 100)
-        self.assertEqual(sommerfeld_parameter(**self.args), 1.)
-        self.args['Z'] = -1
-        self.assertTrue(np.all(sommerfeld_parameter(**self.args) > 1.))
-        self.args['Z'] = 1
-        self.assertTrue(np.all(sommerfeld_parameter(**self.args) < 1.))
 
 
 class MathTest(unittest.TestCase):
