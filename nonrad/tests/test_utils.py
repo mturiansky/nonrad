@@ -83,8 +83,8 @@ class UtilsTest(unittest.TestCase):
             warnings.simplefilter('ignore')
             q, en = get_PES_from_vaspruns(self.gnd_real, self.exd_real,
                                           self.vrs)
-        self.assertEqual(len(q), 9)
-        self.assertEqual(len(en), 9)
+        self.assertEqual(len(q), 2)
+        self.assertEqual(len(en), 2)
         self.assertEqual(np.min(en), 0.)
         self.assertEqual(en[0], 0.)
 
@@ -102,9 +102,11 @@ class UtilsTest(unittest.TestCase):
                                om)
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            self.assertAlmostEqual(get_omega_from_PES(
-                *get_PES_from_vaspruns(self.gnd_real, self.exd_real, self.vrs)
-            ), 0.0335, places=3)
+            q, en = \
+                get_PES_from_vaspruns(self.gnd_real, self.exd_real, self.vrs)
+            q = np.append(q, [-1*q[-1]])
+            en = np.append(en, [en[-1]])
+            self.assertAlmostEqual(get_omega_from_PES(q, en), 0.0335, places=3)
 
     def test__compute_matel(self):
         N = 10
@@ -142,7 +144,7 @@ class UtilsTest(unittest.TestCase):
         )
 
     def test__read_WSWQ(self):
-        wswq = _read_WSWQ(str(TEST_FILES / 'lower' / '2' / 'WSWQ.gz'))
+        wswq = _read_WSWQ(str(TEST_FILES / 'lower' / '10' / 'WSWQ.gz'))
         self.assertGreater(len(wswq), 0)
         self.assertGreater(len(wswq[(1, 1)]), 0)
         self.assertGreater(np.abs(wswq[(1, 1)][(1, 1)]), 0)
