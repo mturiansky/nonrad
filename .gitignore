@@ -4,3 +4,4 @@ dist/
 build/
 .coverage
 .ipynb_checkpoints/
+WAVECAR*

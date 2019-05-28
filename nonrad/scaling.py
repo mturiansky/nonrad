@@ -199,8 +199,7 @@ def charged_supercell_scaling(wavecar_path, def_index, bulk_index, cutoff=0.02,
         return alpha * (4 * np.pi / 3 / volume) * x**3
 
     sind = np.argsort(r)
-    R = r[sind]
-    int_den = np.cumsum(density[sind])
+    R, int_den = (r[sind], np.cumsum(density[sind]))
     uppers = np.linspace(1., limit, 500)
     alphas = np.array([
         curve_fit(f, R[(R >= 0.) & (R <= u)],

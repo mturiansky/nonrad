@@ -3,31 +3,12 @@ import warnings
 import glob
 import pymatgen as pmg
 import numpy as np
-from pathlib import Path
 from itertools import product
+from nonrad.tests import TEST_FILES, FakeAx, FakeFig
 from nonrad.nonrad import HBAR, EV2J, AMU2KG, ANGS2M
 from nonrad.utils import get_cc_structures, get_dQ, get_Q_from_struct, \
     get_PES_from_vaspruns, get_omega_from_PES, _compute_matel, \
     get_Wif_from_wavecars, _read_WSWQ, get_Wif_from_WSWQ
-
-
-TEST_FILES = Path(__file__).absolute().parent / '..' / '..' / 'test_files'
-
-
-class FakeAx:
-    def plot(*args, **kwargs):
-        pass
-
-    def scatter(*args, **kwargs):
-        pass
-
-    def set_title(*args, **kwargs):
-        pass
-
-
-class FakeFig:
-    def subplots(self, x, y, **kwargs):
-        return [FakeAx() for _ in range(y)]
 
 
 class UtilsTest(unittest.TestCase):
