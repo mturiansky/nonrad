@@ -155,7 +155,7 @@ def get_omega_from_PES(Q, energy, Q0=None, ax=None):
         harmonic phonon frequency from the PES in eV
     """
     def f(Q, omega, Q0, dE):
-        return 0.5 * omega * (Q - Q0)**2 + dE
+        return 0.5 * omega**2 * (Q - Q0)**2 + dE
 
     # set bounds to restrict Q0 to the given Q0 value
     bounds = (-np.inf, np.inf) if Q0 is None else \
@@ -167,7 +167,7 @@ def get_omega_from_PES(Q, energy, Q0=None, ax=None):
         q = np.linspace(np.min(Q), np.max(Q), 1000)
         ax.plot(q, f(q, *popt))
 
-    return HBAR * np.sqrt(popt[0] * EV2J / (ANGS2M**2 * AMU2KG))
+    return HBAR * popt[0] * np.sqrt(EV2J / (ANGS2M**2 * AMU2KG))
 
 
 def _compute_matel(psi0, psi1):
