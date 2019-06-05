@@ -3,6 +3,7 @@ import numpy as np
 from itertools import groupby
 from pymatgen.io.vasp.outputs import Vasprun, BSVasprun, Wavecar
 from pymatgen.electronic_structure.core import Spin
+from pymatgen import Structure
 from monty.io import zopen
 from scipy.optimize import curve_fit
 from nonrad.nonrad import HBAR, EV2J, AMU2KG, ANGS2M
@@ -77,9 +78,9 @@ def get_Q_from_struct(ground, excited, struct, tol=0.001):
         pymatgen structure corresponding to the ground (final) state
     excited : pymatgen.core.structure.Structure
         pymatgen structure corresponding to the excited (initial) state
-    struct : pymatgen.core.structure.Structure
+    struct : pymatgen.core.structure.Structure or str
         pymatgen structure corresponding to the structure we want to calculate
-        the Q value for
+        the Q value for (may also be a path to a file containing a structure)
     tol : float
         distance cutoff to throw away sites for determining Q (sites that
         don't move very far could introduce numerical noise)
@@ -89,6 +90,9 @@ def get_Q_from_struct(ground, excited, struct, tol=0.001):
     float
         the Q value (amu^{1/2} Angstrom) of the structure
     """
+    if type(struct) == str:
+        struct = Structure.from_file(struct)
+
     dQ = get_dQ(ground, excited)
     possible_x = []
     for i, site in enumerate(struct):
@@ -164,8 +168,9 @@ def get_omega_from_PES(Q, energy, Q0=None, ax=None):
 
     # optional plotting to check fit
     if ax is not None:
-        q = np.linspace(np.min(Q), np.max(Q), 1000)
-        ax.plot(q, f(q, *popt))
+        q_L = np.max(Q) - np.min(Q)
+        q = np.linspace(np.min(Q) - 0.1 * q_L, np.max(Q) + 0.1 * q_L, 1000)
+        ax.plot(q, f(q, *popt), color='k')
 
     return HBAR * popt[0] * np.sqrt(EV2J / (ANGS2M**2 * AMU2KG))
 

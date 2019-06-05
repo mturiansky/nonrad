@@ -47,11 +47,10 @@ A tutorial notebook that describes the various steps is available [here](https:/
 The basic steps are summarized below:
 
 0. Perform a first-principles calculation of the target defect system. A good explanation of the methodology can be found in this [Review of Modern Physics](http://dx.doi.org/10.1103/RevModPhys.86.253). A high quality calculation is necessary as input for the nonradiative capture rate as the resulting values can differ by orders of magnitude depending on the input values.
-1. Calculate the potential energy surfaces for the configuration coordinate diagram. This is facilitated using the `get_cc_structures` function.
+1. Calculate the potential energy surfaces for the configuration coordinate diagram. This is facilitated using the `get_cc_structures` function. Extract the relevant parameters from the configuration coordinate diagram, aided by `get_dQ`, `get_PES_from_vaspruns`, and `get_omega_from_PES`.
 2. Calculate the electron-phonon coupling matrix elements, using the method of your choice (see [our paper]() for details on this calculation with `VASP`). Extraction of the matrix elements are facilitated by the `get_Wif_from_wavecars` or the `get_Wif_from_WSWQ` function.
-3. Extract the relevant parameters from the configuration coordinate diagram, aided by `get_dQ`, `get_PES_from_vaspruns`, and `get_omega_from_PES`.
-4. Calculate scaling coefficients using `sommerfeld_parameter` and/or `charged_supercell_scaling`.
-5. Perform the calculation of the nonradiative capture coefficient using `get_C`.
+3. Calculate scaling coefficients using `sommerfeld_parameter` and/or `charged_supercell_scaling`.
+4. Perform the calculation of the nonradiative capture coefficient using `get_C`.
 
 ## Contributing
 To contribute, see the above section on installing [for development](#for-development).
