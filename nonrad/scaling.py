@@ -245,3 +245,22 @@ def charged_supercell_scaling(wavecar_path, def_index, bulk_index, cutoff=0.02,
         ax[2].set_ylabel(r'$d \alpha / d r$ [1]')
 
     return plateaus[0][0]
+
+
+def thermal_velocity(T, m_eff):
+    """
+    Calculates the thermal velocity at a given temperature
+
+    Parameters
+    ----------
+    T : float, np.array(dtype=float)
+        temperature in K
+    m_eff : float
+        effective mass in electron masses
+
+    Returns
+    -------
+    float, np.array(dtype=float)
+        thermal velocity at the given temperature in cm s^{-1}
+    """
+    return np.sqrt(3 * const.k * T / (m_eff * const.m_e)) * 1e2
