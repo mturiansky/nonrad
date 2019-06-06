@@ -159,7 +159,7 @@ def get_C(dQ, dE, wi, wf, Wif, volume, g=1, T=300, sigma=None,
     Wif : float
         electron-phonon coupling matrix element in eV amu^{-1/2} Angstrom^{-1}
     volume : float
-        volume of the supercell in m^3
+        volume of the supercell in Å^3
     g : int
         degeneracy factor of the final state
     T : float, np.array(dtype=float)
@@ -175,9 +175,10 @@ def get_C(dQ, dE, wi, wf, Wif, volume, g=1, T=300, sigma=None,
 
     Returns
     -------
-    np.longdouble
-        overlap of the two harmonic oscillator wavefunctions
+    float, np.array(dtype=float)
+        resulting capture coefficient (unscaled) in cm^3 s^{-1}
     """
+    volume *= (1e-8)**3
     kT = (const.k / const.e) * T    # [(J / K) * (eV / J)] * K = eV
     Z = 1. / (1 - np.exp(-wi / kT))
 
