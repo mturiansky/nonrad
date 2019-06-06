@@ -72,7 +72,7 @@ class GetCTest(unittest.TestCase):
             'wi': 0.0306775211118,
             'wf': 0.0339920265573,
             'Wif': 0.00669174,
-            'volume': 1.1e-21,
+            'volume': 1100,
             'g': 1,
             'T': 300,
             'sigma': None,

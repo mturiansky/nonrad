@@ -48,6 +48,9 @@ class UtilsTest(unittest.TestCase):
     def test_get_Q_from_struct(self):
         q = get_Q_from_struct(self.gnd_test, self.exd_test, self.sct_test)
         self.assertAlmostEqual(q, 0.5 * 0.86945, places=4)
+        q = get_Q_from_struct(self.gnd_real, self.exd_real,
+                              str(TEST_FILES / 'POSCAR.C0.gz'))
+        self.assertAlmostEqual(q, 0., places=4)
         gs, es = get_cc_structures(self.gnd_real, self.exd_real,
                                    np.linspace(-0.5, 0.5, 100),
                                    remove_zero=False)

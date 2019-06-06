@@ -1,8 +1,10 @@
 import unittest
 import numpy as np
+from scipy import constants as const
 from nonrad.tests import TEST_FILES, FakeFig
 from nonrad.scaling import sommerfeld_parameter, find_charge_center, \
-    distance_PBC, radial_distribution, charged_supercell_scaling
+    distance_PBC, radial_distribution, charged_supercell_scaling, \
+    thermal_velocity
 
 
 class SommerfeldTest(unittest.TestCase):
@@ -82,3 +84,11 @@ class ChargedSupercellScalingTest(unittest.TestCase):
         f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 192, 189,
                                       fig=FakeFig(), full_range=True)
         self.assertAlmostEqual(f, 1.08)
+
+
+class ThermalVelocityTest(unittest.TestCase):
+    def test_thermal_velocity(self):
+        f = thermal_velocity(1., 1.)
+        self.assertAlmostEqual(f, np.sqrt(3 * const.k / const.m_e) * 1e2)
+        f = thermal_velocity(np.array([1.]), 1.)
+        self.assertEqual(type(f), np.ndarray)
