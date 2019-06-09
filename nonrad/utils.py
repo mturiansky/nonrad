@@ -138,7 +138,7 @@ def get_PES_from_vaspruns(ground, excited, vasprun_paths):
     return Q, (energy - np.min(energy))
 
 
-def get_omega_from_PES(Q, energy, Q0=None, ax=None):
+def get_omega_from_PES(Q, energy, Q0=None, ax=None, q=None):
     """
     Calculates the harmonic phonon frequency for the given PES.
 
@@ -152,6 +152,8 @@ def get_omega_from_PES(Q, energy, Q0=None, ax=None):
         fix the minimum of the parabola (default is None)
     ax : matplotlib.axes.Axes
         optional axis object to plot the resulting fit (default is None)
+    q : np.array(float)
+        array of Q values to evaluate the fitting function at
 
     Returns
     -------
@@ -169,8 +171,9 @@ def get_omega_from_PES(Q, energy, Q0=None, ax=None):
     # optional plotting to check fit
     if ax is not None:
         q_L = np.max(Q) - np.min(Q)
-        q = np.linspace(np.min(Q) - 0.1 * q_L, np.max(Q) + 0.1 * q_L, 1000)
-        ax.plot(q, f(q, *popt), color='k')
+        if q is None:
+            q = np.linspace(np.min(Q) - 0.1 * q_L, np.max(Q) + 0.1 * q_L, 1000)
+        ax.plot(q, f(q, *popt))
 
     return HBAR * popt[0] * np.sqrt(EV2J / (ANGS2M**2 * AMU2KG))
 

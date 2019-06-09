@@ -84,6 +84,9 @@ class UtilsTest(unittest.TestCase):
                 self.assertAlmostEqual(get_omega_from_PES(q, en, Q0=q0), om)
         self.assertAlmostEqual(get_omega_from_PES(q, en, Q0=q0, ax=FakeAx()),
                                om)
+        self.assertAlmostEqual(get_omega_from_PES(q, en, Q0=q0, ax=FakeAx(),
+                                                  q=np.linspace(-1, 1, 100)),
+                               om)
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             q, en = \
