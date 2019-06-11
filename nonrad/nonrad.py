@@ -1,13 +1,23 @@
 import warnings
 import numpy as np
-from numpy.polynomial.hermite import hermval
 from scipy.interpolate import interp1d
 from scipy import constants as const
 try:
-    from numba import njit
+    from numba import njit, vectorize
+
+    @vectorize
+    def herm_vec(x, n):
+        return herm(x, n)
 except ModuleNotFoundError:
-    def njit(func):
-        return func
+    from numpy.polynomial.hermite import hermval
+
+    def njit(*args, **kwargs):
+        def _njit(func):
+            return func
+        return _njit
+
+    def herm_vec(x, n):
+        return hermval(x, [0.]*n + [1.])
 
 HBAR = const.hbar / const.e                     # in units of eV.s
 EV2J = const.e                                  # 1 eV in Joules
@@ -18,6 +28,7 @@ factor = ANGS2M**2 * AMU2KG / HBAR / HBAR / EV2J
 Factor2 = const.hbar / ANGS2M**2 / AMU2KG
 Factor3 = 1 / HBAR
 
+# for fast factorial calculations
 LOOKUP_TABLE = np.array([
     1, 1, 2, 6, 24, 120, 720, 5040, 40320,
     362880, 3628800, 39916800, 479001600,
@@ -25,8 +36,13 @@ LOOKUP_TABLE = np.array([
     20922789888000, 355687428096000, 6402373705728000,
     121645100408832000, 2432902008176640000], dtype=np.double)
 
+# range for computing overlaps in overlap_NM, precomputing once saves time
+# note: -30 to 30 is an arbitrary region. It should be sufficient, but
+# we should probably check this to be safe. 5000 is arbitrary also.
+QQ = np.linspace(-30., 30., 5000)
 
-@njit
+
+@njit(cache=True)
 def fact(n):
     if n > 20:
         return LOOKUP_TABLE[-1] * \
@@ -34,7 +50,7 @@ def fact(n):
     return LOOKUP_TABLE[n]
 
 
-@njit
+@njit(cache=True)
 def herm(x, n):
     """ recursive definition of hermite polynomial """
     if n == 0:
@@ -51,6 +67,7 @@ def herm(x, n):
     return yn
 
 
+@njit(cache=True)
 def overlap_NM(DQ, w1, w2, n1, n2):
     """
     Compute the overlap between two displaced harmonic oscillators.
@@ -74,12 +91,8 @@ def overlap_NM(DQ, w1, w2, n1, n2):
     np.longdouble
         overlap of the two harmonic oscillator wavefunctions
     """
-    # note: -30 to 30 is an arbitrary region. It should be sufficient, but
-    # we should probably check this to be safe. 5000 is arbitrary also.
-    QQ = np.linspace(-30., 30., 5000)
-
-    Hn1Q = hermval(np.sqrt(factor*w1)*(QQ-DQ), [0.]*n1 + [1.])
-    Hn2Q = hermval(np.sqrt(factor*w2)*(QQ), [0.]*n2 + [1.])
+    Hn1Q = herm_vec(np.sqrt(factor*w1)*(QQ-DQ), n1)
+    Hn2Q = herm_vec(np.sqrt(factor*w2)*(QQ), n2)
 
     wfn1 = (factor*w1/np.pi)**(0.25)*(1./np.sqrt(2.**n1*fact(n1))) * \
         Hn1Q*np.exp(-(factor*w1)*(QQ-DQ)**2/2.)
@@ -89,7 +102,7 @@ def overlap_NM(DQ, w1, w2, n1, n2):
     return np.trapz(wfn2*wfn1, x=QQ)
 
 
-@njit
+@njit(cache=True)
 def analytic_overlap_NM(DQ, w1, w2, n1, n2):
     """
     Compute the overlap between two displaced harmonic oscillators.
