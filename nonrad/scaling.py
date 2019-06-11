@@ -6,8 +6,10 @@ from pymatgen.io.vasp.outputs import Wavecar
 try:
     from numba import njit
 except ModuleNotFoundError:
-    def njit(func):
-        return func
+    def njit(*args, **kwargs):
+        def _njit(func):
+            return func
+        return _njit
 
 
 def sommerfeld_parameter(T, Z, m_eff, eps0):
@@ -49,7 +51,7 @@ def sommerfeld_parameter(T, Z, m_eff, eps0):
         return 1.
 
 
-@njit
+@njit(cache=True)
 def find_charge_center(density, lattice):
     """
     Computes the center of the charge density.
@@ -75,7 +77,7 @@ def find_charge_center(density, lattice):
     return avg / np.sum(density)
 
 
-@njit
+@njit(cache=True)
 def distance_PBC(a, b, lattice):
     """
     Computes the distance between a and b on the lattice with periodic BCs.
@@ -102,7 +104,7 @@ def distance_PBC(a, b, lattice):
     return min_dist
 
 
-@njit
+@njit(cache=True)
 def radial_distribution(density, point, lattice):
     """
     Computes the radial distribution.
