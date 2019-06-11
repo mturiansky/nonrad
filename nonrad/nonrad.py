@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 from numpy.polynomial.hermite import hermval
 from scipy.interpolate import interp1d
@@ -74,8 +75,8 @@ def overlap_NM(DQ, w1, w2, n1, n2):
         overlap of the two harmonic oscillator wavefunctions
     """
     # note: -30 to 30 is an arbitrary region. It should be sufficient, but
-    # we should probably check this to be safe. 1000 is arbitrary also.
-    QQ = np.linspace(-30, 30, 1000, dtype=np.double)
+    # we should probably check this to be safe. 5000 is arbitrary also.
+    QQ = np.linspace(-30., 30., 5000)
 
     Hn1Q = hermval(np.sqrt(factor*w1)*(QQ-DQ), [0.]*n1 + [1.])
     Hn2Q = hermval(np.sqrt(factor*w2)*(QQ), [0.]*n2 + [1.])
@@ -138,8 +139,8 @@ def analytic_overlap_NM(DQ, w1, w2, n1, n2):
     return Ix
 
 
-def get_C(dQ, dE, wi, wf, Wif, volume, g=1, T=300, sigma=None,
-          overlap_method='analytic'):
+def get_C(dQ, dE, wi, wf, Wif, volume, g=1, T=300, sigma=None, occ_tol=1e-4,
+          overlap_method='Integral'):
     """
     Compute the nonradiative capture coefficient.
 
@@ -169,6 +170,9 @@ def get_C(dQ, dE, wi, wf, Wif, volume, g=1, T=300, sigma=None,
         gaussians. A value of None corresponds to interpolation instead of
         gaussian smearing. The default is None and is recommended for improved
         accuracy.
+    occ_tol : float
+        criteria to determine the maximum quantum number for overlaps based on
+        the Bose weights
     overlap_method : str
         method for evaluating the overlaps (only the first letter is checked)
         allowed values => ['Analytic', 'Integral']
@@ -182,8 +186,18 @@ def get_C(dQ, dE, wi, wf, Wif, volume, g=1, T=300, sigma=None,
     kT = (const.k / const.e) * T    # [(J / K) * (eV / J)] * K = eV
     Z = 1. / (1 - np.exp(-wi / kT))
 
-    # these should be checked for consistency with temperature
-    Ni, Nf = (17, 50)
+    Ni, Nf = (17, 50)   # default values
+    tNi = np.ceil(-np.max(kT) * np.log(occ_tol) / wi).astype(np.int)
+    if tNi > Ni:
+        Ni = tNi
+    tNf = np.ceil((dE + Ni*wi) / wf).astype(np.int)
+    if tNf > Nf:
+        Nf = tNf
+
+    # warn if there are large values, can be ignored if you're confident
+    if Ni > 150 or Nf > 150:
+        warnings.warn(f'Large value for Ni, Nf encountered: ({Ni}, {Nf})',
+                      RuntimeWarning)
 
     # precompute values of the overlap
     ovl = np.zeros((Ni, Nf), dtype=np.longdouble)
@@ -193,8 +207,10 @@ def get_C(dQ, dE, wi, wf, Wif, volume, g=1, T=300, sigma=None,
                 ovl[m, n] = analytic_overlap_NM(dQ, wi, wf, m, n)
             elif overlap_method.lower()[0] == 'i':
                 ovl[m, n] = overlap_NM(dQ, wi, wf, m, n)
+            else:
+                raise ValueError(f'Invalid overlap method: {overlap_method}')
 
-    t = np.linspace(0, Nf*wf, 1000)
+    t = np.linspace(-Ni*wi, Nf*wf, 5000)
     R = 0.
     for m in np.arange(Ni-1):
         weight_m = np.exp(-m * wi / kT) / Z
