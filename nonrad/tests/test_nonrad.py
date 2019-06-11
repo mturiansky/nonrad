@@ -76,7 +76,8 @@ class GetCTest(unittest.TestCase):
             'g': 1,
             'T': 300,
             'sigma': None,
-            'overlap_method': 'analytic'
+            'occ_tol': 1e-4,
+            'overlap_method': 'Integrate'
         }
 
     def test_normal_run(self):
@@ -88,11 +89,16 @@ class GetCTest(unittest.TestCase):
         self.args['dQ'] = 0.
         self.assertLess(get_C(**self.args), 1e-20)
 
-    def test_integrate(self):
-        self.args['overlap_method'] = 'integrate'
+    def test_analytic(self):
+        self.args['overlap_method'] = 'analytic'
         self.assertGreater(get_C(**self.args), 0.)
-        self.args['overlap_method'] = 'Integrate'
+        self.args['overlap_method'] = 'Analytic'
         self.assertGreater(get_C(**self.args), 0.)
+
+    def test_bad_overlap(self):
+        self.args['overlap_method'] = 'blah'
+        with self.assertRaises(ValueError):
+            get_C(**self.args)
 
     def test_gaussian(self):
         for sigma in np.linspace(0.1, 5, 5):
@@ -108,6 +114,14 @@ class GetCTest(unittest.TestCase):
             self.assertGreater(c, 0.)
         self.args['T'] = [300]
         with self.assertRaises(TypeError):
+            get_C(**self.args)
+
+    def test_occ_tol(self):
+        self.args['occ_tol'] = 1e-6
+        self.assertGreater(get_C(**self.args), 0.)
+        self.args['occ_tol'] = 1.
+        self.args['dE'] = 150 * self.args['wf']
+        with self.assertWarns(RuntimeWarning):
             get_C(**self.args)
 
 
