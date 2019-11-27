@@ -13,18 +13,25 @@ class SommerfeldTest(unittest.TestCase):
             'T': 300,
             'Z': 0,
             'm_eff': 1.,
-            'eps0': 1.
+            'eps0': 1.,
+            'method': 'Integrate'
         }
 
     def test_neutral(self):
+        self.assertAlmostEqual(sommerfeld_parameter(**self.args), 1.)
+        self.args['method'] = 'Analytic'
         self.assertAlmostEqual(sommerfeld_parameter(**self.args), 1.)
 
     def test_attractive(self):
         self.args['Z'] = -1
         self.assertGreater(sommerfeld_parameter(**self.args), 1.)
+        self.args['method'] = 'Analytic'
+        self.assertGreater(sommerfeld_parameter(**self.args), 1.)
 
     def test_repulsive(self):
         self.args['Z'] = 1
+        self.assertLess(sommerfeld_parameter(**self.args), 1.)
+        self.args['method'] = 'Analytic'
         self.assertLess(sommerfeld_parameter(**self.args), 1.)
 
     def test_list(self):
@@ -34,6 +41,34 @@ class SommerfeldTest(unittest.TestCase):
         self.assertTrue(np.all(sommerfeld_parameter(**self.args) > 1.))
         self.args['Z'] = 1
         self.assertTrue(np.all(sommerfeld_parameter(**self.args) < 1.))
+        self.args['Z'] = 0
+        self.args['method'] = 'Analytic'
+        self.assertEqual(sommerfeld_parameter(**self.args), 1.)
+        self.args['Z'] = -1
+        self.assertTrue(np.all(sommerfeld_parameter(**self.args) > 1.))
+        self.args['Z'] = 1
+        self.assertTrue(np.all(sommerfeld_parameter(**self.args) < 1.))
+
+    def test_compare_methods(self):
+        self.args = {
+            'T': 150,
+            'Z': -1,
+            'm_eff': 0.2,
+            'eps0': 8.9,
+            'method': 'Integrate'
+        }
+
+        f0 = sommerfeld_parameter(**self.args)
+        self.args['method'] = 'Analytic'
+        f1 = sommerfeld_parameter(**self.args)
+        self.assertAlmostEqual(f0, f1, places=2)
+
+        self.args['Z'] = 1
+        self.args['T'] = 900
+        f0 = sommerfeld_parameter(**self.args)
+        self.args['method'] = 'Integrate'
+        f1 = sommerfeld_parameter(**self.args)
+        self.assertGreater(np.abs(f0-f1)/f1, 0.1)
 
 
 class ChargedSupercellScalingTest(unittest.TestCase):

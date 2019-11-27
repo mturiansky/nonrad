@@ -2,6 +2,7 @@ import numpy as np
 from itertools import groupby
 from scipy import constants as const
 from scipy.optimize import curve_fit
+from numpy.polynomial.laguerre import laggauss
 from pymatgen.io.vasp.outputs import Wavecar
 try:
     from numba import njit
@@ -12,7 +13,7 @@ except ModuleNotFoundError:
         return _njit
 
 
-def sommerfeld_parameter(T, Z, m_eff, eps0):
+def sommerfeld_parameter(T, Z, m_eff, eps0, method='Integrate'):
     """
     Compute the sommerfeld parameter
 
@@ -32,23 +33,44 @@ def sommerfeld_parameter(T, Z, m_eff, eps0):
         effective mass of the carrier in units of m_e (electron mass)
     eps0 : float
         static dielectric constant
+    method : str
+        specify method for evaluating sommerfeld parameter ('Integrate' or
+        'Analytic'). The default is recommended as the analytic equation may
+        introduce significant errors for the repulsive case at high T.
 
     Returns
     -------
     float, np.array(dtype=float)
         sommerfeld factor evaluated at the given temperature
     """
-    # that 4*pi from Gaussian units....
-    theta_b = np.pi**2 * (m_eff * const.m_e) * const.e**4 / \
-        (2 * const.k * const.hbar**2 * (eps0 * 4*np.pi*const.epsilon_0)**2)
-    zthetaT = Z**2 * theta_b / T
-
-    if Z < 0:
-        return 4 * np.sqrt(zthetaT / np.pi)
-    elif Z > 0:
-        return (8 / np.sqrt(3)) * zthetaT**(2/3) * np.exp(-3 * zthetaT**(1/3))
-    else:
+    if Z == 0:
         return 1.
+
+    if method.lower()[0] == 'i':
+        kT = const.k * T
+        m = m_eff * const.m_e
+        eps = (4 * np.pi * const.epsilon_0) * eps0
+        f = -2 * np.pi * Z * m * const.e**2 / const.hbar**2 / eps
+
+        def s_k(k):
+            return f / k / (1 - np.exp(-f / k))
+
+        t = 0.
+        x, w = laggauss(64)
+        for ix, iw in zip(x, w):
+            t += iw * np.sqrt(ix) * s_k(np.sqrt(2 * m * kT * ix) / const.hbar)
+        return t / np.sum(w * np.sqrt(x))
+    else:
+        # that 4*pi from Gaussian units....
+        theta_b = np.pi**2 * (m_eff * const.m_e) * const.e**4 / \
+            (2 * const.k * const.hbar**2 * (eps0 * 4*np.pi*const.epsilon_0)**2)
+        zthetaT = Z**2 * theta_b / T
+
+        if Z < 0:
+            return 4 * np.sqrt(zthetaT / np.pi)
+        else:
+            return (8 / np.sqrt(3)) * \
+                zthetaT**(2/3) * np.exp(-3 * zthetaT**(1/3))
 
 
 @njit(cache=True)
