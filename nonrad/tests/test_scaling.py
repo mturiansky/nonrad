@@ -111,12 +111,18 @@ class ChargedSupercellScalingTest(unittest.TestCase):
 
     @unittest.skip('WAVECARs too large to share')
     def test_charged_supercell_scaling(self):
-        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 192, 189)
+        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 189,
+                                      def_index=192)
         self.assertAlmostEqual(f, 1.08)
-        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 192, 189,
-                                      fig=FakeFig())
+        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 189,
+                                      def_index=192, fig=FakeFig())
         self.assertAlmostEqual(f, 1.08)
-        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 192, 189,
+        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 189,
+                                      def_index=192, fig=FakeFig(),
+                                      full_range=True)
+        self.assertAlmostEqual(f, 1.08)
+        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 189,
+                                      def_coord=[5.9396, 4.8454, 4.7034],
                                       fig=FakeFig(), full_range=True)
         self.assertAlmostEqual(f, 1.08)
 

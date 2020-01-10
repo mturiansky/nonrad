@@ -166,9 +166,9 @@ def radial_distribution(density, point, lattice):
     return r, n
 
 
-def charged_supercell_scaling(wavecar_path, def_index, bulk_index, cutoff=0.02,
-                              limit=5., spin=0, kpoint=1, fig=None,
-                              full_range=False):
+def charged_supercell_scaling(wavecar_path, bulk_index, def_index=None,
+                              def_coord=None, cutoff=0.02, limit=5., spin=0,
+                              kpoint=1, fig=None, full_range=False):
     """
     Estimate the interaction between the defect and bulk wavefunction.
 
@@ -177,12 +177,20 @@ def charged_supercell_scaling(wavecar_path, def_index, bulk_index, cutoff=0.02,
     supercell. The radial distribution of the bulk wavefunction is compared to
     a perfectly homogenous wavefunction to estimate the scaling.
 
+    Either def_index or def_coord must be specified.
+
+    If you get wonky results with def_index, try using def_coord as there may
+    be a problem with finding the defect position if the defect charge is at
+    the boundary of the cell.
+
     Parameters
     ----------
     wavecar_path : str
         path to the WAVECAR file that contains the relevant wavefunctions
     def_index, bulk_index : int
         index of the defect and bulk wavefunctions in the WAVECAR file
+    def_coord : np.array(dim=(3,))
+        cartesian coordinates of defect position
     cutoff : float
         cutoff for determining zero slope regions
     limit : float
@@ -201,21 +209,27 @@ def charged_supercell_scaling(wavecar_path, def_index, bulk_index, cutoff=0.02,
     float
         estimated scaling value to apply to the capture coefficient
     """
+    if def_index is None and def_coord is None:
+        raise ValueError('either def_index or def_coord must be specified')
+
     wavecar = Wavecar(wavecar_path)
     volume = np.dot(wavecar.a[0, :],
                     np.cross(wavecar.a[1, :], wavecar.a[2, :]))
 
     # compute relevant things
-    psi_def = wavecar.fft_mesh(spin=spin, kpoint=kpoint-1, band=def_index-1)
-    fft_psi_def = np.fft.ifftn(psi_def)
-    den_def = np.abs(np.conj(fft_psi_def) * fft_psi_def) / \
-        np.abs(np.vdot(fft_psi_def, fft_psi_def))
+    if def_coord is None:
+        psi_def = wavecar.fft_mesh(spin=spin, kpoint=kpoint-1,
+                                   band=def_index-1)
+        fft_psi_def = np.fft.ifftn(psi_def)
+        den_def = np.abs(np.conj(fft_psi_def) * fft_psi_def) / \
+            np.abs(np.vdot(fft_psi_def, fft_psi_def))
+        def_coord = find_charge_center(den_def, wavecar.a)
+
     psi_bulk = wavecar.fft_mesh(spin=spin, kpoint=kpoint-1, band=bulk_index-1)
     fft_psi_bulk = np.fft.ifftn(psi_bulk)
     den_bulk = np.abs(np.conj(fft_psi_bulk) * fft_psi_bulk) / \
         np.abs(np.vdot(fft_psi_bulk, fft_psi_bulk))
 
-    def_coord = find_charge_center(den_def, wavecar.a)
     r, density = radial_distribution(den_bulk, def_coord, wavecar.a)
 
     # fitting procedure
