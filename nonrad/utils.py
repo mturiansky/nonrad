@@ -96,7 +96,7 @@ def get_Q_from_struct(ground, excited, struct, tol=0.001):
     dQ = get_dQ(ground, excited)
     possible_x = []
     for i, site in enumerate(struct):
-        if ground[i].distance(excited[i]) < 0.001:
+        if ground[i].distance(excited[i]) < tol:
             continue
         possible_x += ((site.coords - ground[i].coords) /
                        (excited[i].coords - ground[i].coords)).tolist()
@@ -104,7 +104,7 @@ def get_Q_from_struct(ground, excited, struct, tol=0.001):
     return dQ * max(groupby(spossible_x), key=lambda x: len(list(x[1])))[0]
 
 
-def get_PES_from_vaspruns(ground, excited, vasprun_paths):
+def get_PES_from_vaspruns(ground, excited, vasprun_paths, tol=0.001):
     """
     Extract the potential energy surface (PES) from vasprun.xml files.
 
@@ -121,6 +121,8 @@ def get_PES_from_vaspruns(ground, excited, vasprun_paths):
         a list of paths to each of the vasprun.xml files that make up the PES.
         Note that the minimum (0% displacement) should be included in the list,
         and each path should end in 'vasprun.xml' (e.g. /path/to/vasprun.xml)
+    tol : float
+        tolerance to pass to get_Q_from_struct
 
     Returns
     -------
@@ -133,7 +135,7 @@ def get_PES_from_vaspruns(ground, excited, vasprun_paths):
     Q, energy = (np.zeros(num), np.zeros(num))
     for i, vr_fname in enumerate(vasprun_paths):
         vr = Vasprun(vr_fname, parse_dos=False, parse_eigen=False)
-        Q[i] = get_Q_from_struct(ground, excited, vr.structures[-1])
+        Q[i] = get_Q_from_struct(ground, excited, vr.structures[-1], tol=tol)
         energy[i] = vr.final_energy
     return Q, (energy - np.min(energy))
 
