@@ -1,12 +1,14 @@
 import re
-import numpy as np
 from itertools import groupby
-from pymatgen.io.vasp.outputs import Vasprun, BSVasprun, Wavecar
-from pymatgen.electronic_structure.core import Spin
-from pymatgen import Structure
+
+import numpy as np
 from monty.io import zopen
 from scipy.optimize import curve_fit
-from nonrad.nonrad import HBAR, EV2J, AMU2KG, ANGS2M
+
+from nonrad.nonrad import AMU2KG, ANGS2M, EV2J, HBAR
+from pymatgen import Structure
+from pymatgen.electronic_structure.core import Spin
+from pymatgen.io.vasp.outputs import BSVasprun, Vasprun, Wavecar
 
 
 def get_cc_structures(ground, excited, displacements, remove_zero=True):

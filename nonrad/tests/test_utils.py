@@ -1,14 +1,17 @@
+import glob
 import unittest
 import warnings
-import glob
-import pymatgen as pmg
-import numpy as np
 from itertools import product
+
+import numpy as np
+
+import pymatgen as pmg
+from nonrad.nonrad import AMU2KG, ANGS2M, EV2J, HBAR
 from nonrad.tests import TEST_FILES, FakeAx, FakeFig
-from nonrad.nonrad import HBAR, EV2J, AMU2KG, ANGS2M
-from nonrad.utils import get_cc_structures, get_dQ, get_Q_from_struct, \
-    get_PES_from_vaspruns, get_omega_from_PES, _compute_matel, \
-    get_Wif_from_wavecars, _read_WSWQ, get_Wif_from_WSWQ
+from nonrad.utils import (_compute_matel, _read_WSWQ, get_cc_structures,
+                          get_dQ, get_omega_from_PES, get_PES_from_vaspruns,
+                          get_Q_from_struct, get_Wif_from_wavecars,
+                          get_Wif_from_WSWQ)
 
 
 class UtilsTest(unittest.TestCase):

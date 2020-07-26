@@ -1,9 +1,12 @@
-import numpy as np
 from itertools import groupby
+
+import numpy as np
+from numpy.polynomial.laguerre import laggauss
 from scipy import constants as const
 from scipy.optimize import curve_fit
-from numpy.polynomial.laguerre import laggauss
+
 from pymatgen.io.vasp.outputs import Wavecar
+
 try:
     from numba import njit
 except ModuleNotFoundError:

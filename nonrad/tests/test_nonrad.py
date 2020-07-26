@@ -1,9 +1,11 @@
 import unittest
-import numpy as np
 from itertools import product
-from scipy.special import factorial
+
+import numpy as np
 from numpy.polynomial.hermite import hermval
-from nonrad.nonrad import fact, herm, overlap_NM, analytic_overlap_NM, get_C
+from scipy.special import factorial
+
+from nonrad.nonrad import analytic_overlap_NM, fact, get_C, herm, overlap_NM
 
 
 class OverlapTest(unittest.TestCase):

@@ -1,0 +1,36 @@
+name: nonrad continuous integration
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip setuptools wheel
+        pip install -e .[dev]
+    - name: Lint with flake8
+      run: |
+        flake8 nonrad --count --statistics --show-source
+    - name: Lint with pycodestyle
+      run: |
+        pycodestyle --count --statistics nonrad
+    - name: Lint with pydocstyle
+      run: |
+        pydocstyle --count nonrad
+    - name: Lint with mypy
+      run: |
+        mypy nonrad
+    - name: Lint with pylint
+      run: |
+        pylint --exit-zero nonrad

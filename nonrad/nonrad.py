@@ -1,7 +1,9 @@
 import warnings
+
 import numpy as np
-from scipy.interpolate import interp1d
 from scipy import constants as const
+from scipy.interpolate import interp1d
+
 try:
     from numba import njit, vectorize
 
@@ -141,7 +143,7 @@ def analytic_overlap_NM(DQ, w1, w2, n1, n2):
     for kx in range(k1+1):
         for lx in range(l1+1):
             k = 2 * kx + k2
-            l = 2 * lx + l2             # noqa: E741
+            l = 2 * lx + l2     # noqa: E741
             Pr2 = (fact(n1) * fact(n2))**0.5 / \
                 (fact(k)*fact(l)*fact(k1-kx)*fact(l1-lx)) * \
                 2**((k + l - n2 - n1) / 2)
