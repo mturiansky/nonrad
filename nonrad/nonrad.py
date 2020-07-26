@@ -1,4 +1,15 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) Chris G. Van de Walle
+# Distributed under the terms of the MIT License.
+
+"""Core module for nonrad.
+
+This module provides the main implementation to evaluate the nonradiative
+capture coefficient from first-principles.
+"""
+
 import warnings
+from typing import Optional, Union
 
 import numpy as np
 from scipy import constants as const
@@ -8,17 +19,20 @@ try:
     from numba import njit, vectorize
 
     @vectorize
-    def herm_vec(x, n):
+    def herm_vec(x: float, n: int) -> float:
+        """Wrap herm function."""
         return herm(x, n)
 except ModuleNotFoundError:
     from numpy.polynomial.hermite import hermval
 
-    def njit(*args, **kwargs):
+    def njit(*args, **kwargs):      # pylint: disable=W0613
+        """Fake njit when numba can't be found."""
         def _njit(func):
             return func
         return _njit
 
-    def herm_vec(x, n):
+    def herm_vec(x: float, n: int) -> float:
+        """Wrap hermval function."""
         return hermval(x, [0.]*n + [1.])
 
 HBAR = const.hbar / const.e                     # in units of eV.s
@@ -45,7 +59,8 @@ QQ = np.linspace(-30., 30., 5000)
 
 
 @njit(cache=True)
-def fact(n):
+def fact(n: int) -> float:
+    """Compute the factorial of n."""
     if n > 20:
         return LOOKUP_TABLE[-1] * \
             np.prod(np.array(list(range(21, n+1)), dtype=np.double))
@@ -53,12 +68,13 @@ def fact(n):
 
 
 @njit(cache=True)
-def herm(x, n):
-    """ recursive definition of hermite polynomial """
+def herm(x: float, n: int) -> float:
+    """Recursive definition of hermite polynomial."""
     if n == 0:
         return 1.
-    elif n == 1:
+    if n == 1:
         return 2. * x
+
     y1 = 2. * x
     dy1 = 2.
     for i in range(2, n+1):
@@ -70,9 +86,14 @@ def herm(x, n):
 
 
 @njit(cache=True)
-def overlap_NM(DQ, w1, w2, n1, n2):
-    """
-    Compute the overlap between two displaced harmonic oscillators.
+def overlap_NM(
+        DQ: float,
+        w1: float,
+        w2: float,
+        n1: int,
+        n2: int
+) -> float:
+    """Compute the overlap between two displaced harmonic oscillators.
 
     This function computes the overlap integral between two harmonic
     oscillators with frequencies w1, w2 that are displaced by DQ for the
@@ -105,9 +126,14 @@ def overlap_NM(DQ, w1, w2, n1, n2):
 
 
 @njit(cache=True)
-def analytic_overlap_NM(DQ, w1, w2, n1, n2):
-    """
-    Compute the overlap between two displaced harmonic oscillators.
+def analytic_overlap_NM(
+        DQ: float,
+        w1: float,
+        w2: float,
+        n1: int,
+        n2: int
+) -> float:
+    """Compute the overlap between two displaced harmonic oscillators.
 
     This function computes the overlap integral between two harmonic
     oscillators with frequencies w1, w2 that are displaced by DQ for the
@@ -154,10 +180,20 @@ def analytic_overlap_NM(DQ, w1, w2, n1, n2):
     return Ix
 
 
-def get_C(dQ, dE, wi, wf, Wif, volume, g=1, T=300, sigma=None, occ_tol=1e-4,
-          overlap_method='Integral'):
-    """
-    Compute the nonradiative capture coefficient.
+def get_C(
+        dQ: float,
+        dE: float,
+        wi: float,
+        wf: float,
+        Wif: float,
+        volume: float,
+        g: int = 1,
+        T: Union[float, np.ndarray] = 300.,
+        sigma: Optional[float] = None,
+        occ_tol: float = 1e-4,
+        overlap_method: str = 'Integral'
+) -> Union[float, np.ndarray]:
+    """Compute the nonradiative capture coefficient.
 
     This function computes the nonradiative capture coefficient following the
     methodology of A. Alkauskas et al., Phys. Rev. B 90, 075202 (2014). The

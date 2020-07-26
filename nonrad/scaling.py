@@ -1,4 +1,14 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) Chris G. Van de Walle
+# Distributed under the terms of the MIT License.
+
+"""Utilities for scaling the capture coefficient.
+
+This module provides various utilities that are necessary to scale the
+capture coefficient to the final value.
+"""
 from itertools import groupby
+from typing import Optional, Tuple, Union
 
 import numpy as np
 from numpy.polynomial.laguerre import laggauss
@@ -10,15 +20,21 @@ from pymatgen.io.vasp.outputs import Wavecar
 try:
     from numba import njit
 except ModuleNotFoundError:
-    def njit(*args, **kwargs):
+    def njit(*args, **kwargs):      # pylint: disable=W0613
+        """Fake njit when numba can't be found."""
         def _njit(func):
             return func
         return _njit
 
 
-def sommerfeld_parameter(T, Z, m_eff, eps0, method='Integrate'):
-    """
-    Compute the sommerfeld parameter
+def sommerfeld_parameter(
+        T: Union[float, np.ndarray],
+        Z: int,
+        m_eff: float,
+        eps0: float,
+        method: str = 'Integrate'
+) -> Union[float, np.ndarray]:
+    """Compute the sommerfeld parameter.
 
     Computes the sommerfeld parameter at a given temperature using the
     definitions in R. Pässler et al., phys. stat. sol. (b) 78, 625 (1976). We
@@ -63,23 +79,21 @@ def sommerfeld_parameter(T, Z, m_eff, eps0, method='Integrate'):
         for ix, iw in zip(x, w):
             t += iw * np.sqrt(ix) * s_k(np.sqrt(2 * m * kT * ix) / const.hbar)
         return t / np.sum(w * np.sqrt(x))
-    else:
-        # that 4*pi from Gaussian units....
-        theta_b = np.pi**2 * (m_eff * const.m_e) * const.e**4 / \
-            (2 * const.k * const.hbar**2 * (eps0 * 4*np.pi*const.epsilon_0)**2)
-        zthetaT = Z**2 * theta_b / T
 
-        if Z < 0:
-            return 4 * np.sqrt(zthetaT / np.pi)
-        else:
-            return (8 / np.sqrt(3)) * \
-                zthetaT**(2/3) * np.exp(-3 * zthetaT**(1/3))
+    # that 4*pi from Gaussian units....
+    theta_b = np.pi**2 * (m_eff * const.m_e) * const.e**4 / \
+        (2 * const.k * const.hbar**2 * (eps0 * 4*np.pi*const.epsilon_0)**2)
+    zthetaT = Z**2 * theta_b / T
+
+    if Z < 0:
+        return 4 * np.sqrt(zthetaT / np.pi)
+    return (8 / np.sqrt(3)) * \
+        zthetaT**(2/3) * np.exp(-3 * zthetaT**(1/3))
 
 
 @njit(cache=True)
-def find_charge_center(density, lattice):
-    """
-    Computes the center of the charge density.
+def find_charge_center(density: np.ndarray, lattice: np.ndarray) -> np.ndarray:
+    """Compute the center of the charge density.
 
     Parameters
     ----------
@@ -103,9 +117,8 @@ def find_charge_center(density, lattice):
 
 
 @njit(cache=True)
-def distance_PBC(a, b, lattice):
-    """
-    Computes the distance between a and b on the lattice with periodic BCs.
+def distance_PBC(a: np.ndarray, b: np.ndarray, lattice: np.ndarray) -> float:
+    """Compute the distance between a and b on the lattice with periodic BCs.
 
     Parameters
     ----------
@@ -130,9 +143,12 @@ def distance_PBC(a, b, lattice):
 
 
 @njit(cache=True)
-def radial_distribution(density, point, lattice):
-    """
-    Computes the radial distribution.
+def radial_distribution(
+        density: np.ndarray,
+        point: np.ndarray,
+        lattice: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Compute the radial distribution.
 
     Computes the radial distribution of the density around the given point with
     the defined lattice.
@@ -169,9 +185,18 @@ def radial_distribution(density, point, lattice):
     return r, n
 
 
-def charged_supercell_scaling(wavecar_path, bulk_index, def_index=None,
-                              def_coord=None, cutoff=0.02, limit=5., spin=0,
-                              kpoint=1, fig=None, full_range=False):
+def charged_supercell_scaling(
+        wavecar_path: str,
+        bulk_index: int,
+        def_index: int,
+        def_coord: Optional[np.ndarray] = None,
+        cutoff: float = 0.02,
+        limit: float = 5.,
+        spin: int = 0,
+        kpoint: int = 1,
+        fig=None,
+        full_range=False
+) -> float:
     """
     Estimate the interaction between the defect and bulk wavefunction.
 
@@ -288,9 +313,8 @@ def charged_supercell_scaling(wavecar_path, bulk_index, def_index=None,
     return plateaus[0][0]
 
 
-def thermal_velocity(T, m_eff):
-    """
-    Calculates the thermal velocity at a given temperature
+def thermal_velocity(T: Union[float, np.ndarray], m_eff: float):
+    """Calculate the thermal velocity at a given temperature.
 
     Parameters
     ----------
