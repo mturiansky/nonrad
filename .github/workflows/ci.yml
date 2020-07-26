@@ -19,18 +19,22 @@ jobs:
       run: |
         pip install --upgrade pip setuptools wheel
         pip install -e .[dev]
-    - name: Lint with flake8
+        # - name: Lint with flake8
+        #   run: |
+        #     flake8 nonrad --count --statistics --show-source
+        # - name: Lint with pycodestyle
+        #   run: |
+        #     pycodestyle --count --statistics nonrad
+        # - name: Lint with pydocstyle
+        #   run: |
+        #     pydocstyle --count nonrad
+        # - name: Lint with mypy
+        #   run: |
+        #     mypy nonrad
+        # - name: Lint with pylint
+        #   run: |
+        #     pylint --exit-zero nonrad
+    - name: Test with pytest
       run: |
-        flake8 nonrad --count --statistics --show-source
-    - name: Lint with pycodestyle
-      run: |
-        pycodestyle --count --statistics nonrad
-    - name: Lint with pydocstyle
-      run: |
-        pydocstyle --count nonrad
-    - name: Lint with mypy
-      run: |
-        mypy nonrad
-    - name: Lint with pylint
-      run: |
-        pylint --exit-zero nonrad
+        NUMBA_DISABLE_JIT=1 pytest --cov-report=xml --cov=nonrad nonrad
+        bash <(curl -s https://codecov.io/bash)
