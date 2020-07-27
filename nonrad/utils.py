@@ -1,5 +1,16 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) Chris G. Van de Walle
+# Distributed under the terms of the MIT License.
+
+"""Convenience utilities for nonrad.
+
+This module contains various convenience utilities for working with and
+preparing input for nonrad.
+"""
+
 import re
 from itertools import groupby
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 from monty.io import zopen
@@ -11,9 +22,13 @@ from pymatgen.electronic_structure.core import Spin
 from pymatgen.io.vasp.outputs import BSVasprun, Vasprun, Wavecar
 
 
-def get_cc_structures(ground, excited, displacements, remove_zero=True):
-    """
-    Generate the structures for a CC diagram
+def get_cc_structures(
+        ground: Structure,
+        excited: Structure,
+        displacements: np.ndarray,
+        remove_zero: bool = True
+) -> Tuple[List, List]:
+    """Generate the structures for a CC diagram.
 
     Parameters
     ----------
@@ -45,9 +60,8 @@ def get_cc_structures(ground, excited, displacements, remove_zero=True):
     return ground_structs, excited_structs
 
 
-def get_dQ(ground, excited):
-    """
-    Calculate dQ from the initial and final structures
+def get_dQ(ground: Structure, excited: Structure) -> float:
+    """Calculate dQ from the initial and final structures.
 
     Parameters
     ----------
@@ -67,9 +81,13 @@ def get_dQ(ground, excited):
     ))))
 
 
-def get_Q_from_struct(ground, excited, struct, tol=0.001):
-    """
-    Calculate the Q value for a given structure.
+def get_Q_from_struct(
+        ground: Structure,
+        excited: Structure,
+        struct: Structure,
+        tol: float = 0.001
+) -> float:
+    """Calculate the Q value for a given structure.
 
     This function calculates the Q value for a given structure, knowing the
     endpoints and assuming linear interpolation.
@@ -92,7 +110,7 @@ def get_Q_from_struct(ground, excited, struct, tol=0.001):
     float
         the Q value (amu^{1/2} Angstrom) of the structure
     """
-    if type(struct) == str:
+    if isinstance(struct, str):
         struct = Structure.from_file(struct)
 
     dQ = get_dQ(ground, excited)
@@ -106,9 +124,13 @@ def get_Q_from_struct(ground, excited, struct, tol=0.001):
     return dQ * max(groupby(spossible_x), key=lambda x: len(list(x[1])))[0]
 
 
-def get_PES_from_vaspruns(ground, excited, vasprun_paths, tol=0.001):
-    """
-    Extract the potential energy surface (PES) from vasprun.xml files.
+def get_PES_from_vaspruns(
+        ground: Structure,
+        excited: Structure,
+        vasprun_paths: List[str],
+        tol: float = 0.001
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Extract the potential energy surface (PES) from vasprun.xml files.
 
     This function reads in vasprun.xml files to extract the energy and Q value
     of each calculation and then returns it as a list.
@@ -142,9 +164,14 @@ def get_PES_from_vaspruns(ground, excited, vasprun_paths, tol=0.001):
     return Q, (energy - np.min(energy))
 
 
-def get_omega_from_PES(Q, energy, Q0=None, ax=None, q=None):
-    """
-    Calculates the harmonic phonon frequency for the given PES.
+def get_omega_from_PES(
+        Q: np.ndarray,
+        energy: np.ndarray,
+        Q0: Optional[float] = None,
+        ax=None,
+        q: Optional[np.ndarray] = None
+) -> float:
+    """Calculate the harmonic phonon frequency for the given PES.
 
     Parameters
     ----------
@@ -170,7 +197,7 @@ def get_omega_from_PES(Q, energy, Q0=None, ax=None, q=None):
     # set bounds to restrict Q0 to the given Q0 value
     bounds = (-np.inf, np.inf) if Q0 is None else \
         ([-np.inf, Q0 - 1e-10, -np.inf], [np.inf, Q0, np.inf])
-    popt, pcov = curve_fit(f, Q, energy, bounds=bounds)
+    popt, _ = curve_fit(f, Q, energy, bounds=bounds)    # pylint: disable=W0632
 
     # optional plotting to check fit
     if ax is not None:
@@ -182,9 +209,8 @@ def get_omega_from_PES(Q, energy, Q0=None, ax=None, q=None):
     return HBAR * popt[0] * np.sqrt(EV2J / (ANGS2M**2 * AMU2KG))
 
 
-def _compute_matel(psi0, psi1):
-    """
-    Computes the inner product of the two wavefunctions.
+def _compute_matel(psi0: np.ndarray, psi1: np.ndarray) -> float:
+    """Compute the inner product of the two wavefunctions.
 
     Parameters
     ----------
@@ -203,10 +229,16 @@ def _compute_matel(psi0, psi1):
     return np.abs(np.vdot(npsi0, npsi1))
 
 
-def get_Wif_from_wavecars(wavecars, init_wavecar_path, def_index, bulk_index,
-                          spin=0, kpoint=1, fig=None):
-    """
-    Computes the electron-phonon matrix element using the WAVECAR's.
+def get_Wif_from_wavecars(
+        wavecars: List,
+        init_wavecar_path: str,
+        def_index: int,
+        bulk_index: Sequence[int],
+        spin: int = 0,
+        kpoint: int = 1,
+        fig=None
+) -> List:
+    """Compute the electron-phonon matrix element using the WAVECARs.
 
     This function reads in the pseudo-wavefunctions from the WAVECAR files and
     computes the overlaps necessary.
@@ -289,9 +321,8 @@ def get_Wif_from_wavecars(wavecars, init_wavecar_path, def_index, bulk_index,
             for i, bi in enumerate(bulk_index)]
 
 
-def _read_WSWQ(fname):
-    """
-    Reads the WSWQ file from VASP.
+def _read_WSWQ(fname: str) -> Dict:
+    """Read the WSWQ file from VASP.
 
     Parameters
     ----------
@@ -304,7 +335,8 @@ def _read_WSWQ(fname):
         a dict of dicts that takes keys (spin, kpoint) and (initial, final) as
         indices and maps it to a complex number
     """
-    wswq = {}
+    # whoa, this is horrific
+    wswq: Dict[Optional[Tuple[int, int]], Dict[Tuple[int, int], complex]] = {}
     current = None
     with zopen(fname, 'r') as f:
         for line in f:
@@ -324,9 +356,19 @@ def _read_WSWQ(fname):
     return wswq
 
 
-def get_Wif_from_WSWQ(wswqs, initial_vasprun, def_index, bulk_index,
-                      spin=0, kpoint=1, fig=None):
-    """
+def get_Wif_from_WSWQ(
+        wswqs: List,
+        initial_vasprun: str,
+        def_index: int,
+        bulk_index: Sequence[int],
+        spin: int = 0,
+        kpoint: int = 1,
+        fig=None
+) -> List:
+    """Compute the electron-phonon matrix element using the WSWQ files.
+
+    Read in the WSWQ files to obtain the overlaps. Then compute the electron-
+    phonon matrix elements from the overlaps as a function of Q.
 
     Parameters
     ----------

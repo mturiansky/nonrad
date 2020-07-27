@@ -188,7 +188,7 @@ def radial_distribution(
 def charged_supercell_scaling(
         wavecar_path: str,
         bulk_index: int,
-        def_index: int,
+        def_index: int = -1,
         def_coord: Optional[np.ndarray] = None,
         cutoff: float = 0.02,
         limit: float = 5.,
@@ -237,7 +237,7 @@ def charged_supercell_scaling(
     float
         estimated scaling value to apply to the capture coefficient
     """
-    if def_index is None and def_coord is None:
+    if def_index == -1 and def_coord is None:
         raise ValueError('either def_index or def_coord must be specified')
 
     wavecar = Wavecar(wavecar_path)
