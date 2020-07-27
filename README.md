@@ -1,4 +1,4 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![build badge](https://img.shields.io/github/workflow/status/mturiansky/nonrad/nonrad%20continuous%20integration) [![codacy](https://app.codacy.com/project/badge/Grade/97df4e822c2349ff858a756b033c6041)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mturiansky/nonrad&amp;utm_campaign=Badge_Grade) [![codecov](https://codecov.io/gh/mturiansky/nonrad/branch/master/graph/badge.svg?token=N1IXIQK333)](https://codecov.io/gh/mturiansky/nonrad) [![license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # NONRAD
 
