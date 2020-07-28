@@ -6,3 +6,4 @@ build/
 .ipynb_checkpoints/
 WAVECAR*
 _build/
+_static/
