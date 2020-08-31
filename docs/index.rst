@@ -2,6 +2,7 @@
    :hidden:
 
    installation
+   compatibility
    Tutorial<tutorial>
    API Docs<modules>
 
