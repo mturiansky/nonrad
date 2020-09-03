@@ -409,7 +409,7 @@ Below is an example of the interaction with the valence band:
     plt.tight_layout()
     plt.show()
     
-    print('scaling =', 1 / factor**2)
+    print('scaling =', 1 / factor)
 
 
 
@@ -418,7 +418,7 @@ Below is an example of the interaction with the valence band:
 
 .. parsed-literal::
 
-    scaling = 0.8573388203017832
+    scaling = 0.9259259259259259
 
 
 The left-most plot is of the cumulative charge density (blue) against a
@@ -440,7 +440,7 @@ Below we show the process for the interaction with the conduction band.
     plt.tight_layout()
     plt.show()
     
-    print('scaling =', 1 / factor**2)
+    print('scaling =', 1 / factor)
 
 
 
@@ -449,7 +449,7 @@ Below we show the process for the interaction with the conduction band.
 
 .. parsed-literal::
 
-    scaling = 2.100399075824407
+    scaling = 1.4492753623188408
 
 
 Here we see that the distribution is suppressed near the defect.
