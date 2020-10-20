@@ -5,7 +5,8 @@ import unittest
 import numpy as np
 from scipy import constants as const
 
-from nonrad.scaling import (charged_supercell_scaling, distance_PBC,
+from nonrad.scaling import (charged_supercell_scaling,
+                            charged_supercell_scaling_VASP, distance_PBC,
                             find_charge_center, radial_distribution,
                             sommerfeld_parameter, thermal_velocity)
 from nonrad.tests import TEST_FILES, FakeFig
@@ -114,21 +115,28 @@ class ChargedSupercellScalingTest(unittest.TestCase):
         self.assertAlmostEqual(r[np.where(n == 1.)[0][0]], dist)
 
     @unittest.skip('WAVECARs too large to share')
+    def test_charged_supercell_scaling_VASP(self):
+        f = charged_supercell_scaling_VASP(
+            str(TEST_FILES / 'WAVECAR.C-'),
+            189,
+            def_index=192
+        )
+        self.assertAlmostEqual(f, 1.08)
+
     def test_charged_supercell_scaling(self):
-        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 189,
-                                      def_index=192)
-        self.assertAlmostEqual(f, 1.08)
-        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 189,
-                                      def_index=192, fig=FakeFig())
-        self.assertAlmostEqual(f, 1.08)
-        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 189,
-                                      def_index=192, fig=FakeFig(),
-                                      full_range=True)
-        self.assertAlmostEqual(f, 1.08)
-        f = charged_supercell_scaling(str(TEST_FILES / 'WAVECAR.C-'), 189,
-                                      def_coord=[5.9396, 4.8454, 4.7034],
+        # test that numbers work out for homogeneous case
+        wf = np.ones((20, 20, 20))
+        f = charged_supercell_scaling(wf, 10*np.eye(3), np.array([0.]*3))
+        self.assertAlmostEqual(f, 1.00)
+
+        # test the plotting stuff
+        wf = np.ones((1, 1, 1))
+        f = charged_supercell_scaling(wf, 10*np.eye(3), np.array([0.]*3),
+                                      fig=FakeFig())
+        self.assertAlmostEqual(f, 1.00)
+        f = charged_supercell_scaling(wf, 10*np.eye(3), np.array([0.]*3),
                                       fig=FakeFig(), full_range=True)
-        self.assertAlmostEqual(f, 1.08)
+        self.assertAlmostEqual(f, 1.00)
 
 
 class ThermalVelocityTest(unittest.TestCase):
