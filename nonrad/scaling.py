@@ -185,7 +185,7 @@ def radial_distribution(
     return r, n
 
 
-def charged_supercell_scaling(
+def charged_supercell_scaling_VASP(
         wavecar_path: str,
         bulk_index: int,
         def_index: int = -1,
@@ -241,8 +241,6 @@ def charged_supercell_scaling(
         raise ValueError('either def_index or def_coord must be specified')
 
     wavecar = Wavecar(wavecar_path)
-    volume = np.dot(wavecar.a[0, :],
-                    np.cross(wavecar.a[1, :], wavecar.a[2, :]))
 
     # compute relevant things
     if def_coord is None:
@@ -255,10 +253,54 @@ def charged_supercell_scaling(
 
     psi_bulk = wavecar.fft_mesh(spin=spin, kpoint=kpoint-1, band=bulk_index-1)
     fft_psi_bulk = np.fft.ifftn(psi_bulk)
-    den_bulk = np.abs(np.conj(fft_psi_bulk) * fft_psi_bulk) / \
-        np.abs(np.vdot(fft_psi_bulk, fft_psi_bulk))
+    return charged_supercell_scaling(fft_psi_bulk, wavecar.a, def_coord,
+                                     cutoff=cutoff, limit=limit, fig=fig,
+                                     full_range=full_range)
 
-    r, density = radial_distribution(den_bulk, def_coord, wavecar.a)
+
+def charged_supercell_scaling(
+        wavefunc: np.ndarray,
+        lattice: np.ndarray,
+        def_coord: np.ndarray,
+        cutoff: float = 0.02,
+        limit: float = 5.,
+        fig=None,
+        full_range=False
+) -> float:
+    """
+    Estimate the interaction between the defect and bulk wavefunction.
+
+    This function estimates the interaction between the defect and bulk
+    wavefunction due to spurious effects as a result of using a charged
+    supercell. The radial distribution of the bulk wavefunction is compared to
+    a perfectly homogenous wavefunction to estimate the scaling.
+
+    Parameters
+    ----------
+    wavefunc : np.array(dim=(NX, NY, NZ))
+        bulk wavefunction in real-space on a NX by NY by NZ FFT grid
+    lattice : np.array(dim=(3, 3))
+        real-space lattice vectors for your system
+    def_coord : np.array(dim=(3,))
+        cartesian coordinates of defect position
+    cutoff : float
+        cutoff for determining zero slope regions
+    limit : float
+        upper limit for windowing procedure
+    fig : matplotlib.figure.Figure
+        optional figure object to plot diagnostic information (recommended)
+    full_range : bool
+        determines if full range of first plot is shown
+
+    Returns
+    -------
+    float
+        estimated scaling value to apply to the capture coefficient
+    """
+    volume = np.dot(lattice[0, :], np.cross(lattice[1, :], lattice[2, :]))
+    den_bulk = np.abs(np.conj(wavefunc) * wavefunc) / \
+        np.abs(np.vdot(wavefunc, wavefunc))
+    r, density = radial_distribution(den_bulk, def_coord, lattice)
 
     # fitting procedure
     def f(x, alpha):

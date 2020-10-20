@@ -16,6 +16,7 @@ from monty.io import zopen
 
 from pymatgen.electronic_structure.core import Spin
 from pymatgen.io.vasp.outputs import BSVasprun, Wavecar
+from pymatgen.io.wannier90 import Unk
 
 
 def _compute_matel(psi0: np.ndarray, psi1: np.ndarray) -> float:
@@ -117,6 +118,78 @@ def get_Wif_from_wavecars(
                 psi_f = final_wavecar.coeffs[spin][kpoint-1][bi-1]
             else:
                 psi_f = final_wavecar.coeffs[kpoint-1][bi-1]
+            matels[j, i] = _compute_matel(psi_i, psi_f)
+
+    if fig is not None:
+        ax = fig.subplots(1, Nbi)
+        ax = np.array(ax)
+        for a, i in zip(ax, range(Nbi)):
+            a.scatter(Q, matels[i, :])
+            a.set_title(f'{bulk_index[i]}')
+
+    return [(bi, deig[i] * np.mean(np.abs(np.gradient(matels[i, :], Q))))
+            for i, bi in enumerate(bulk_index)]
+
+
+def get_Wif_from_UNK(
+        unks: List,
+        init_unk_path: str,
+        def_index: int,
+        bulk_index: Sequence[int],
+        eigs: float,
+        fig=None
+) -> List:
+    """Compute the electron-phonon matrix element using UNK files.
+
+    Evaluate the electron-phonon coupling matrix element using the information
+    stored in the given UNK files. This is compatible with any first-principles
+    code that write to the wannier90 UNK file format. The onus is on the user
+    to ensure the wavefunctions are valid (i.e., norm-conserving).
+
+    Parameters
+    ----------
+    unks: list((Q, unk_path))
+        a list of tuples where the first value is the Q and the second is the
+        path to the UNK file
+    init_unk_path : string
+        path to the initial unk file for computing overlaps
+    def_index : int
+        index corresponding to the defect wavefunction (1-based indexing)
+    bulk_index : int, list(int)
+        index or list of indices corresponding to the bulk wavefunction
+        (1-based indexing)
+    eigs : np.ndarray
+        array of eigenvalues in eV where the indices correspond to those given
+        by def_index and bulk_index
+    fig : matplotlib.figure.Figure
+        optional figure object to plot diagnostic information
+
+    Returns
+    -------
+    list((bulk_index, Wif))
+        electron-phonon matrix element Wif in units of
+        eV amu^{-1/2} Angstrom^{-1} for each bulk_index
+    """
+    bulk_index = np.array(bulk_index)
+    initial_unk = Unk(init_unk_path)
+    psi_i = initial_unk.data[def_index-1].flatten()
+
+    Nu, Nbi = (len(unks), len(bulk_index))
+    Q, matels, deig = (np.zeros(Nu+1), np.zeros((Nbi, Nu+1)), np.zeros(Nbi))
+
+    # first compute the Q = 0 values and eigenvalue differences
+    for i, bi in enumerate(bulk_index):
+        psi_f = initial_unk.data[bi-1].flatten()
+        deig[i] = eigs[bi-1] - eigs[def_index-1]
+        matels[i, Nu] = _compute_matel(psi_i, psi_f)
+    deig = np.abs(deig)
+
+    # now compute for each Q
+    for i, (q, fname) in enumerate(unks):
+        Q[i] = q
+        final_unk = Unk(fname)
+        for j, bi in enumerate(bulk_index):
+            psi_f = final_unk.data[bi-1].flatten()
             matels[j, i] = _compute_matel(psi_i, psi_f)
 
     if fig is not None:
