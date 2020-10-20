@@ -10,7 +10,7 @@ import numpy as np
 import pymatgen as pmg
 from nonrad.ccd import get_Q_from_struct
 from nonrad.elphon import (_compute_matel, _read_WSWQ, get_Wif_from_wavecars,
-                           get_Wif_from_WSWQ)
+                           get_Wif_from_WSWQ, get_Wif_from_UNK)
 from nonrad.tests import TEST_FILES, FakeFig
 
 
@@ -62,6 +62,17 @@ class ElphonTest(unittest.TestCase):
                                   192, [189], spin=1, fig=FakeFig())[0][1],
             0.087, places=2
         )
+
+    def test_get_Wif_from_UNK(self):
+        Wif = get_Wif_from_UNK(
+            unks=[(1., str(TEST_FILES / 'UNK.1'))],
+            init_unk_path=str(TEST_FILES / 'UNK.0'),
+            def_index=2,
+            bulk_index=[1],
+            eigs=np.array([0., 1.])
+        )
+        self.assertEqual(Wif[0][0], 1)
+        self.assertAlmostEqual(Wif[0][1], 1.)
 
     def test__read_WSWQ(self):
         wswq = _read_WSWQ(str(TEST_FILES / 'lower' / '10' / 'WSWQ.gz'))

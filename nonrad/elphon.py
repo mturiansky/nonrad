@@ -171,7 +171,7 @@ def get_Wif_from_UNK(
         eV amu^{-1/2} Angstrom^{-1} for each bulk_index
     """
     bulk_index = np.array(bulk_index)
-    initial_unk = Unk(init_unk_path)
+    initial_unk = Unk.from_file(init_unk_path)
     psi_i = initial_unk.data[def_index-1].flatten()
 
     Nu, Nbi = (len(unks), len(bulk_index))
@@ -187,10 +187,12 @@ def get_Wif_from_UNK(
     # now compute for each Q
     for i, (q, fname) in enumerate(unks):
         Q[i] = q
-        final_unk = Unk(fname)
+        final_unk = Unk.from_file(fname)
         for j, bi in enumerate(bulk_index):
             psi_f = final_unk.data[bi-1].flatten()
             matels[j, i] = _compute_matel(psi_i, psi_f)
+
+    print(matels)
 
     if fig is not None:
         ax = fig.subplots(1, Nbi)
