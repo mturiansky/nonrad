@@ -136,7 +136,7 @@ def get_Wif_from_UNK(
         init_unk_path: str,
         def_index: int,
         bulk_index: Sequence[int],
-        eigs: float,
+        eigs: Sequence[float],
         fig=None
 ) -> List:
     """Compute the electron-phonon matrix element using UNK files.
