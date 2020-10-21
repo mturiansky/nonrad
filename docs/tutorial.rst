@@ -77,7 +77,7 @@ initio calculation of the configuration coordinate diagram (example for
     from pathlib import Path
     from shutil import copyfile
     from pymatgen import Structure
-    from nonrad.utils import get_cc_structures
+    from nonrad.ccd import get_cc_structures
     
     # equilibrium structures from your first-principles calculation
     ground_files = Path('/path/to/C0/relax/')
@@ -139,7 +139,7 @@ nonradiative capture coefficient.
 .. code:: ipython3
 
     from glob import glob
-    from nonrad.utils import get_dQ, get_PES_from_vaspruns, get_omega_from_PES
+    from nonrad.ccd import get_dQ, get_PES_from_vaspruns, get_omega_from_PES
     
     # calculate dQ
     dQ = get_dQ(ground_struct, excited_struct) # amu^{1/2} Angstrom
@@ -224,7 +224,8 @@ can then be parsed to obtain the matrix element using NONRAD as below.
 
 .. code:: ipython3
 
-    from nonrad.utils import get_Q_from_struct, get_Wif_from_WSWQ
+    from nonrad.ccd import get_Q_from_struct
+    from nonrad.elphon import get_Wif_from_WSWQ
     
     # this generates a list of tuples where the first value of the tuple is a Q value
     # and the second is the path to the WSWQ file that corresponds to that tuple
@@ -285,7 +286,7 @@ the ``get_Wif_from_wavecars`` function.
 
 .. code:: ipython3
 
-    from nonrad.utils import get_Wif_from_wavecars
+    from nonrad.elphon import get_Wif_from_wavecars
     
     # this generates a list of tuples where the first value of the tuple is a Q value
     # and the second is the path to the WAVECAR file that corresponds to that tuple

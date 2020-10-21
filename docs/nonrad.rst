@@ -20,6 +20,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   nonrad.ccd
+   nonrad.elphon
    nonrad.nonrad
    nonrad.scaling
-   nonrad.utils
