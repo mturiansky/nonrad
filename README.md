@@ -1,10 +1,11 @@
-![build badge](https://img.shields.io/github/workflow/status/mturiansky/nonrad/nonrad%20continuous%20integration) [![codacy](https://app.codacy.com/project/badge/Grade/97df4e822c2349ff858a756b033c6041)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mturiansky/nonrad&amp;utm_campaign=Badge_Grade) [![codecov](https://codecov.io/gh/mturiansky/nonrad/branch/master/graph/badge.svg?token=N1IXIQK333)](https://codecov.io/gh/mturiansky/nonrad) [![license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4274317.svg)](https://doi.org/10.5281/zenodo.4274317)
+![build badge](https://img.shields.io/github/workflow/status/mturiansky/nonrad/nonrad%20continuous%20integration) [![docs badge](https://readthedocs.org/projects/nonrad/badge/?version=latest)](https://nonrad.readthedocs.io/en/latest/?badge=latest) [![codacy](https://app.codacy.com/project/badge/Grade/97df4e822c2349ff858a756b033c6041)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mturiansky/nonrad&amp;utm_campaign=Badge_Grade) [![codecov](https://codecov.io/gh/mturiansky/nonrad/branch/master/graph/badge.svg?token=N1IXIQK333)](https://codecov.io/gh/mturiansky/nonrad) [![license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4274317.svg)](https://doi.org/10.5281/zenodo.4274317)
 
 # NONRAD
 
 An implementation of the methodology pioneered by [Alkauskas *et al.*](https://doi.org/10.1103/PhysRevB.90.075202) for computing nonradiative recombination rates from first principles.
 The code includes various utilities for processing first principles calculations and preparing the input for computing capture coefficients.
 More details on the implementation of the code can be found in [our recent paper]().
+Documentation for the code is hosted on [Read the Docs](https://nonrad.readthedocs.io/en/latest).
 
 ## Installation
 NONRAD is implemented in python and can be installed through `pip`.
