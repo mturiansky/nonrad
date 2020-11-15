@@ -1,4 +1,4 @@
-![build badge](https://img.shields.io/github/workflow/status/mturiansky/nonrad/nonrad%20continuous%20integration) [![codacy](https://app.codacy.com/project/badge/Grade/97df4e822c2349ff858a756b033c6041)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mturiansky/nonrad&amp;utm_campaign=Badge_Grade) [![codecov](https://codecov.io/gh/mturiansky/nonrad/branch/master/graph/badge.svg?token=N1IXIQK333)](https://codecov.io/gh/mturiansky/nonrad) [![license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![build badge](https://img.shields.io/github/workflow/status/mturiansky/nonrad/nonrad%20continuous%20integration) [![codacy](https://app.codacy.com/project/badge/Grade/97df4e822c2349ff858a756b033c6041)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mturiansky/nonrad&amp;utm_campaign=Badge_Grade) [![codecov](https://codecov.io/gh/mturiansky/nonrad/branch/master/graph/badge.svg?token=N1IXIQK333)](https://codecov.io/gh/mturiansky/nonrad) [![license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4274317.svg)](https://doi.org/10.5281/zenodo.4274317)
 
 # NONRAD
 
@@ -39,7 +39,7 @@ then install the package in editable mode with development dependencies
 $ pip install -e .[dev]
 ```
 `nose2` is used for unittesting.
-To run the unittests, issue the command `nose2 -v` from the base directory.
+To run the unittests, issue the command `pytest nonrad` from the base directory.
 Unittests should run correctly with and without `numba` installed.
 
 ## Usage
@@ -58,7 +58,6 @@ Contributions are welcome and any potential change or improvement should be subm
 Potential contribution areas are:
  - [ ] implement a command line interface
  - [ ] add more robust tests for various functions
- - [ ] more numba support
 
 ## How to Cite
 If you use our code to calculate nonradiative capture rates, please consider citing

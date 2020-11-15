@@ -17,6 +17,8 @@ Nonrad
    :alt: Codecov
 .. image:: https://img.shields.io/badge/License-MIT-yellow.svg
    :alt: License
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4274318.svg
+   :alt: DOI
 
 An implementation of the methodology pioneered by `Alkauskas et al. <https://doi.org/10.1103/PhysRevB.90.075202>`_ for computing nonradiative recombination rates from first principles.
 The code includes various utilities for processing first principles calculations and preparing the input for computing capture coefficients.
