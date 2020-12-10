@@ -286,9 +286,10 @@ def get_Wif_from_WSWQ(
 
     # first compute the eigenvalue differences
     bvr = BSVasprun(initial_vasprun)
+    sp = Spin.up if spin == 0 else Spin.down
+    def_eig = bvr.eigenvalues[sp][kpoint-1][def_index-1][0]
     for i, bi in enumerate(bulk_index):
-        sp = Spin.up if spin == 0 else Spin.down
-        deig[i] = bvr.eigenvalues[sp][kpoint-1][bi-1][0]
+        deig[i] = bvr.eigenvalues[sp][kpoint-1][bi-1][0] - def_eig
     deig = np.abs(deig)
 
     # now compute for each Q
