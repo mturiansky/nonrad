@@ -97,10 +97,10 @@ class ElphonTest(unittest.TestCase):
         self.assertAlmostEqual(
             get_Wif_from_WSWQ(wswqs, str(TEST_FILES / 'vasprun.xml.0.gz'),
                               192, [189], spin=1)[0][1],
-            0.081, places=2
+            0.094, places=2
         )
         self.assertAlmostEqual(
             get_Wif_from_WSWQ(wswqs, str(TEST_FILES / 'vasprun.xml.0.gz'),
                               192, [189], spin=1, fig=FakeFig())[0][1],
-            0.081, places=2
+            0.094, places=2
         )
