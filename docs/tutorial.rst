@@ -215,7 +215,7 @@ function of :math:`Q` and computing the slope with respect to :math:`Q`.
 The el-ph matrix element is then
 :math:`W_{if} = (\epsilon_f - \epsilon_i) \langle \psi_i (0) \vert \delta \psi_f (Q) \rangle`.
 For each :math:`Q`, one sets up the calculation by copying the
-``INCAR``, ``POSCAR``, ``POTCAR``, ``KPOINTS``, and ``WAVECAR`` to a new
+``INCAR``, ``POSCAR``, ``POTCAR``, ``KPOINTS``, and ``WAVECAR`` from :math:`Q = 0` to a new
 directory and sets ``LWSWQ = True`` in the ``INCAR`` file. The
 ``WAVECAR`` from the :math:`Q` configuration is copied to
 ``WAVECAR.qqq``. This calculation produces the file ``WSWQ``, which
