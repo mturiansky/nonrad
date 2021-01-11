@@ -65,6 +65,13 @@ class CCDTest(unittest.TestCase):
             tq = get_Q_from_struct(self.gnd_real, self.exd_real, s)
             self.assertAlmostEqual(tq, q, places=4)
 
+        # test when one of the coordinates stays the same
+        sg = pmg.Structure(np.eye(3), ['H'], [[0.0, 0.0, 0.0]])
+        sq = pmg.Structure(np.eye(3), ['H'], [[0.1, 0.0, 0.1]])
+        se = pmg.Structure(np.eye(3), ['H'], [[0.2, 0.0, 0.2]])
+        dQ = get_dQ(sg, se)
+        self.assertAlmostEqual(get_Q_from_struct(sg, se, sq)/dQ, 0.5)
+
     def test_get_PES_from_vaspruns(self):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
