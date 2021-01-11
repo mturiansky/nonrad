@@ -82,7 +82,7 @@ def get_Q_from_struct(
         ground: Structure,
         excited: Structure,
         struct: Structure,
-        tol: float = 0.001
+        tol: float = 1e-4
 ) -> float:
     """Calculate the Q value for a given structure.
 
@@ -99,7 +99,7 @@ def get_Q_from_struct(
         pymatgen structure corresponding to the structure we want to calculate
         the Q value for (may also be a path to a file containing a structure)
     tol : float
-        distance cutoff to throw away sites for determining Q (sites that
+        distance cutoff to throw away coordinates for determining Q (sites that
         don't move very far could introduce numerical noise)
 
     Returns
@@ -113,10 +113,11 @@ def get_Q_from_struct(
     dQ = get_dQ(ground, excited)
     possible_x = []
     for i, site in enumerate(struct):
-        if ground[i].distance(excited[i]) < tol:
-            continue
-        possible_x += ((site.coords - ground[i].coords) /
-                       (excited[i].coords - ground[i].coords)).tolist()
+        for j in range(3):
+            dx = excited[i].coords[j] - ground[i].coords[j]
+            if np.abs(dx) < tol:
+                continue
+            possible_x.append((site.coords[j] - ground[i].coords[j]) / dx)
     spossible_x = np.sort(np.round(possible_x, 6))
     return dQ * max(groupby(spossible_x), key=lambda x: len(list(x[1])))[0]
 
