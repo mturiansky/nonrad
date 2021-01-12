@@ -18,7 +18,7 @@ first-principles calculation to obtain the equilibrium structures and
 thermodynamic level for our defect. This results in a formation energy
 plot such as the following.
 
-.. code:: ipython3
+.. code:: python3
 
     %matplotlib inline
     import matplotlib.pyplot as plt
@@ -48,7 +48,7 @@ find a value of 1.058 eV. This will be one input parameter to the
 calculation of the nonradiative capture coefficient, ``dE``. Let’s save
 this value for later:
 
-.. code:: ipython3
+.. code:: python3
 
     dE = 1.058 # eV
 
@@ -71,7 +71,7 @@ The following code can be used to prepare the input files for the ab
 initio calculation of the configuration coordinate diagram (example for
 ``VASP`` is shown below).
 
-.. code:: ipython3
+.. code:: python3
 
     import os
     from pathlib import Path
@@ -115,7 +115,7 @@ initio calculation of the configuration coordinate diagram (example for
         # write structure and copy necessary input files
         struct.to(filename=str(working_dir / 'POSCAR'), fmt='poscar')
         for f in ['KPOINTS', 'POTCAR', 'INCAR', 'submit.job']:
-            copyfile(str(ground_files / f), str(working_dir / f))
+            copyfile(str(excited_files / f), str(working_dir / f))
 
 Before submitting the calculations prepared above, the INCAR files
 should be modified to remove the ``NSW`` flag (no relaxation should be
@@ -136,7 +136,7 @@ will extract the dQ value and the phonon frequencies of the potential
 energy surfaces. These are 3 input parameters for the calculation of the
 nonradiative capture coefficient.
 
-.. code:: ipython3
+.. code:: python3
 
     from glob import glob
     from nonrad.ccd import get_dQ, get_PES_from_vaspruns, get_omega_from_PES
@@ -180,7 +180,7 @@ nonradiative capture coefficient.
 The resulting input parameters that we have extracted for our
 calculation of the nonradiative recombination coefficient are below.
 
-.. code:: ipython3
+.. code:: python3
 
     print(f'dQ = {dQ:7.05f} amu^(1/2) Angstrom, ground_omega = {ground_omega:7.05f} eV, excited_omega = {excited_omega:7.05f} eV')
 
@@ -222,7 +222,7 @@ directory and sets ``LWSWQ = True`` in the ``INCAR`` file. The
 includes the overlap information for all bands and kpoints. These files
 can then be parsed to obtain the matrix element using NONRAD as below.
 
-.. code:: ipython3
+.. code:: python3
 
     from nonrad.ccd import get_Q_from_struct
     from nonrad.elphon import get_Wif_from_WSWQ
@@ -261,7 +261,7 @@ wz-GaN has three (nearly degenerate) bands, so we must average over the
 matrix elements. The resulting value can then be directly input into the
 nonradiative capture calculation.
 
-.. code:: ipython3
+.. code:: python3
 
     Wif = np.sqrt(np.mean([x[1]**2 for x in Wifs]))
     print(Wifs, Wif)
@@ -284,7 +284,7 @@ then the result should be reasonably reliable. Please only use this to
 get a rough idea, the above method is preferred. This is facilitated by
 the ``get_Wif_from_wavecars`` function.
 
-.. code:: ipython3
+.. code:: python3
 
     from nonrad.elphon import get_Wif_from_wavecars
     
@@ -311,7 +311,7 @@ the ``get_Wif_from_wavecars`` function.
 As we can see, the results are reasonably close because the Q = 0 value
 is somewhat low.
 
-.. code:: ipython3
+.. code:: python3
 
     print(Wifs, np.sqrt(np.mean([x[1]**2 for x in Wifs])))
 
@@ -353,7 +353,7 @@ Below, we calculate the scaling coefficient. Note, we use the hole
 effective mass (because we are capturing a hole) and the static
 dielectric constant.
 
-.. code:: ipython3
+.. code:: python3
 
     from nonrad.scaling import sommerfeld_parameter
     
@@ -399,7 +399,7 @@ a purely homogenous distribution. The function
 
 Below is an example of the interaction with the valence band:
 
-.. code:: ipython3
+.. code:: python3
 
     from nonrad.scaling import charged_supercell_scaling
     
@@ -434,7 +434,7 @@ way to find the plateau.
 
 Below we show the process for the interaction with the conduction band.
 
-.. code:: ipython3
+.. code:: python3
 
     fig = plt.figure(figsize=(12, 5))
     factor = charged_supercell_scaling(wavecar_path, 193, def_index=192, fig=fig)
@@ -463,7 +463,7 @@ parameter we need to think about is the configurational degeneracy. For
 a C substitution, there are 4 identical defect configurations (one along
 each bond) that the hole can be captured into.
 
-.. code:: ipython3
+.. code:: python3
 
     from nonrad import get_C
     
@@ -496,7 +496,7 @@ We may also want to calculate the capture cross section,
 :math:`\sigma = C / \langle v \rangle`. We can do this using the
 ``thermal_velocity`` function.
 
-.. code:: ipython3
+.. code:: python3
 
     from nonrad.scaling import thermal_velocity
     
