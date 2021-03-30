@@ -12,11 +12,11 @@ from itertools import groupby
 from typing import List, Optional, Tuple
 
 import numpy as np
+from pymatgen.core import Structure
+from pymatgen.io.vasp.outputs import Vasprun
 from scipy.optimize import curve_fit
 
 from nonrad.nonrad import AMU2KG, ANGS2M, EV2J, HBAR
-from pymatgen import Structure
-from pymatgen.io.vasp.outputs import Vasprun
 
 
 def get_cc_structures(

@@ -6,24 +6,24 @@ import warnings
 from itertools import product
 
 import numpy as np
+from pymatgen.core import Lattice, Structure
 
-import pymatgen as pmg
 from nonrad.ccd import get_Q_from_struct
-from nonrad.elphon import (_compute_matel, _read_WSWQ, get_Wif_from_wavecars,
-                           get_Wif_from_WSWQ, get_Wif_from_UNK)
+from nonrad.elphon import (_compute_matel, _read_WSWQ, get_Wif_from_UNK,
+                           get_Wif_from_wavecars, get_Wif_from_WSWQ)
 from nonrad.tests import TEST_FILES, FakeFig
 
 
 class ElphonTest(unittest.TestCase):
     def setUp(self):
-        self.gnd_real = pmg.Structure.from_file(TEST_FILES / 'POSCAR.C0.gz')
-        self.exd_real = pmg.Structure.from_file(TEST_FILES / 'POSCAR.C-.gz')
-        self.gnd_test = pmg.Structure(pmg.Lattice.cubic(1.), ['H'],
-                                      [[0., 0., 0.]])
-        self.exd_test = pmg.Structure(pmg.Lattice.cubic(1.), ['H'],
-                                      [[0.5, 0.5, 0.5]])
-        self.sct_test = pmg.Structure(pmg.Lattice.cubic(1.), ['H'],
-                                      [[0.25, 0.25, 0.25]])
+        self.gnd_real = Structure.from_file(TEST_FILES / 'POSCAR.C0.gz')
+        self.exd_real = Structure.from_file(TEST_FILES / 'POSCAR.C-.gz')
+        self.gnd_test = Structure(Lattice.cubic(1.), ['H'],
+                                  [[0., 0., 0.]])
+        self.exd_test = Structure(Lattice.cubic(1.), ['H'],
+                                  [[0.5, 0.5, 0.5]])
+        self.sct_test = Structure(Lattice.cubic(1.), ['H'],
+                                  [[0.25, 0.25, 0.25]])
         self.vrs = [TEST_FILES / 'vasprun.xml.0.gz'] + \
             glob.glob(str(TEST_FILES / 'lower' / '*' / 'vasprun.xml.gz'))
 
@@ -44,7 +44,7 @@ class ElphonTest(unittest.TestCase):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             wcrs = [
-                (pmg.Structure.from_file(d+'/vasprun.xml.gz'), d+'/WAVECAR')
+                (Structure.from_file(d+'/vasprun.xml.gz'), d+'/WAVECAR')
                 for d in glob.glob(str(TEST_FILES / 'lower' / '*'))
             ]
             wcrs = list(map(
@@ -86,7 +86,7 @@ class ElphonTest(unittest.TestCase):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             wswqs = [
-                (pmg.Structure.from_file(d+'/vasprun.xml.gz'), d+'/WSWQ.gz')
+                (Structure.from_file(d+'/vasprun.xml.gz'), d+'/WSWQ.gz')
                 for d in glob.glob(str(TEST_FILES / 'lower' / '*'))
             ]
             wswqs = list(map(

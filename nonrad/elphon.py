@@ -13,7 +13,6 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 from monty.io import zopen
-
 from pymatgen.electronic_structure.core import Spin
 from pymatgen.io.vasp.outputs import BSVasprun, Wavecar
 from pymatgen.io.wannier90 import Unk

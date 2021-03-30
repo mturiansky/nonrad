@@ -12,10 +12,9 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 from numpy.polynomial.laguerre import laggauss
+from pymatgen.io.vasp.outputs import Wavecar
 from scipy import constants as const
 from scipy.optimize import curve_fit
-
-from pymatgen.io.vasp.outputs import Wavecar
 
 try:
     from numba import njit

@@ -5,25 +5,24 @@ import unittest
 import warnings
 
 import numpy as np
+from pymatgen.core import Lattice, Structure
 
-import pymatgen as pmg
+from nonrad.ccd import (get_cc_structures, get_dQ, get_omega_from_PES,
+                        get_PES_from_vaspruns, get_Q_from_struct)
 from nonrad.nonrad import AMU2KG, ANGS2M, EV2J, HBAR
 from nonrad.tests import TEST_FILES, FakeAx
-from nonrad.ccd import (get_cc_structures,
-                        get_dQ, get_omega_from_PES, get_PES_from_vaspruns,
-                        get_Q_from_struct)
 
 
 class CCDTest(unittest.TestCase):
     def setUp(self):
-        self.gnd_real = pmg.Structure.from_file(TEST_FILES / 'POSCAR.C0.gz')
-        self.exd_real = pmg.Structure.from_file(TEST_FILES / 'POSCAR.C-.gz')
-        self.gnd_test = pmg.Structure(pmg.Lattice.cubic(1.), ['H'],
-                                      [[0., 0., 0.]])
-        self.exd_test = pmg.Structure(pmg.Lattice.cubic(1.), ['H'],
-                                      [[0.5, 0.5, 0.5]])
-        self.sct_test = pmg.Structure(pmg.Lattice.cubic(1.), ['H'],
-                                      [[0.25, 0.25, 0.25]])
+        self.gnd_real = Structure.from_file(TEST_FILES / 'POSCAR.C0.gz')
+        self.exd_real = Structure.from_file(TEST_FILES / 'POSCAR.C-.gz')
+        self.gnd_test = Structure(Lattice.cubic(1.), ['H'],
+                                  [[0., 0., 0.]])
+        self.exd_test = Structure(Lattice.cubic(1.), ['H'],
+                                  [[0.5, 0.5, 0.5]])
+        self.sct_test = Structure(Lattice.cubic(1.), ['H'],
+                                  [[0.25, 0.25, 0.25]])
         self.vrs = [TEST_FILES / 'vasprun.xml.0.gz'] + \
             glob.glob(str(TEST_FILES / 'lower' / '*' / 'vasprun.xml.gz'))
 
@@ -66,9 +65,9 @@ class CCDTest(unittest.TestCase):
             self.assertAlmostEqual(tq, q, places=4)
 
         # test when one of the coordinates stays the same
-        sg = pmg.Structure(np.eye(3), ['H'], [[0.0, 0.0, 0.0]])
-        sq = pmg.Structure(np.eye(3), ['H'], [[0.1, 0.0, 0.1]])
-        se = pmg.Structure(np.eye(3), ['H'], [[0.2, 0.0, 0.2]])
+        sg = Structure(np.eye(3), ['H'], [[0.0, 0.0, 0.0]])
+        sq = Structure(np.eye(3), ['H'], [[0.1, 0.0, 0.1]])
+        se = Structure(np.eye(3), ['H'], [[0.2, 0.0, 0.2]])
         dQ = get_dQ(sg, se)
         self.assertAlmostEqual(get_Q_from_struct(sg, se, sq)/dQ, 0.5)
 
