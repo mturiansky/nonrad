@@ -38,7 +38,7 @@ jobs:
         pydocstyle --count nonrad
     - name: Lint with mypy
       run: |
-        mypy nonrad
+        mypy --ignore-missing-imports nonrad
     - name: Lint with pylint
       run: |
         pylint --exit-zero nonrad
