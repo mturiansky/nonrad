@@ -238,10 +238,10 @@ def get_C(
     Z = 1. / (1 - np.exp(-wi / kT))
 
     Ni, Nf = (17, 50)   # default values
-    tNi = np.ceil(-np.max(kT) * np.log(occ_tol) / wi).astype(np.int)
+    tNi = np.ceil(-np.max(kT) * np.log(occ_tol) / wi).astype(int)
     if tNi > Ni:
         Ni = tNi
-    tNf = np.ceil((dE + Ni*wi) / wf).astype(np.int)
+    tNf = np.ceil((dE + Ni*wi) / wf).astype(int)
     if tNf > Nf:
         Nf = tNf
 

@@ -9,7 +9,7 @@ strength using different first-principles codes.
 """
 
 import re
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from monty.io import zopen
@@ -42,7 +42,7 @@ def get_Wif_from_wavecars(
         wavecars: List,
         init_wavecar_path: str,
         def_index: int,
-        bulk_index: Sequence[int],
+        bulk_index: Union[np.ndarray, Sequence[int]],
         spin: int = 0,
         kpoint: int = 1,
         fig=None
@@ -134,7 +134,7 @@ def get_Wif_from_UNK(
         unks: List,
         init_unk_path: str,
         def_index: int,
-        bulk_index: Sequence[int],
+        bulk_index: Union[np.ndarray, Sequence[int]],
         eigs: Sequence[float],
         fig=None
 ) -> List:
@@ -243,7 +243,7 @@ def get_Wif_from_WSWQ(
         wswqs: List,
         initial_vasprun: str,
         def_index: int,
-        bulk_index: Sequence[int],
+        bulk_index: Union[np.ndarray, Sequence[int]],
         spin: int = 0,
         kpoint: int = 1,
         fig=None
