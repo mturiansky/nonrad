@@ -3,6 +3,7 @@
 
    installation
    compatibility
+   citation
    Tutorial<tutorial>
    API Docs<modules>
 
@@ -24,7 +25,8 @@ Nonrad
 
 An implementation of the methodology pioneered by `Alkauskas et al. <https://doi.org/10.1103/PhysRevB.90.075202>`_ for computing nonradiative recombination rates from first principles.
 The code includes various utilities for processing first principles calculations and preparing the input for computing capture coefficients.
-More details on the implementation of the code can be found in `our recent paper <https://doi.org>`_.
+More details on the implementation of the code can be found in `our recent paper <https://doi.org/10.1016/j.cpc.2021.108056>`_.
+If you use our code, please consider citing it (see :doc:`citation`).
 
 The code is hosted on `github <https://github.com/mturiansky/nonrad>`_.
 

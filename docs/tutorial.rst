@@ -195,8 +195,9 @@ calculation of the nonradiative recombination coefficient are below.
 
 Before computing the el-ph matrix elements, it is highly suggested that
 you re-read the `original methodology
-paper <http://dx.doi.org/10.1103/PhysRevB.90.075202>`__ and the `code
-implementation paper <>`__ to make sure you understand the details.
+paper <https://doi.org/10.1103/PhysRevB.90.075202>`__ and the `code
+implementation paper <https://doi.org/10.1016/j.cpc.2021.108056>`__ to
+make sure you understand the details.
 
 The most important criteria for selecting the geometry in which the
 el-ph matrix elements are calculated is the presence of a Kohn-Sham

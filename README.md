@@ -39,7 +39,7 @@ then install the package in editable mode with development dependencies
 ```
 $ pip install -e .[dev]
 ```
-`nose2` is used for unittesting.
+`pytest` is used for unittesting.
 To run the unittests, issue the command `pytest nonrad` from the base directory.
 Unittests should run correctly with and without `numba` installed.
 
@@ -66,10 +66,9 @@ If you use our code to calculate nonradiative capture rates, please consider cit
 @article{alkauskas_first-principles_2014,
 	title = {First-principles theory of nonradiative carrier capture via multiphonon emission},
 	volume = {90},
-	url = {https://link.aps.org/doi/10.1103/PhysRevB.90.075202},
 	doi = {10.1103/PhysRevB.90.075202},
 	number = {7},
-	journal = {Physical Review B},
+	journal = {Phys. Rev. B},
 	author = {Alkauskas, Audrius and Yan, Qimin and Van de Walle, Chris G.},
 	month = aug,
 	year = {2014},
@@ -78,5 +77,14 @@ If you use our code to calculate nonradiative capture rates, please consider cit
 ```
 and
 ```
-To be added...
+@article{turiansky_nonrad_2021,
+	title = {Nonrad: {Computing} nonradiative capture coefficients from first principles},
+	volume = {267},
+	doi = {10.1016/j.cpc.2021.108056},
+	journal = {Comput. Phys. Commun.},
+	author = {Turiansky, Mark E. and Alkauskas, Audrius and Engel, Manuel and Kresse, Georg and Wickramaratne, Darshana and Shen, Jimmy-Xuan and Dreyer, Cyrus E. and Van de Walle, Chris G.},
+	month = oct,
+	year = {2021},
+	pages = {108056},
+}
 ```
