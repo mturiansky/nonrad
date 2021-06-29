@@ -8,7 +8,7 @@ This module contains various convenience utilities for working with and
 preparing input for nonrad.
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from pymatgen.core import Structure
@@ -80,7 +80,7 @@ def get_dQ(ground: Structure, excited: Structure) -> float:
 def get_Q_from_struct(
         ground: Structure,
         excited: Structure,
-        struct: Structure,
+        struct: Union[Structure, str],
         tol: float = 1e-4,
         nround: int = 5,
 ) -> float:
@@ -110,13 +110,15 @@ def get_Q_from_struct(
         the Q value (amu^{1/2} Angstrom) of the structure
     """
     if isinstance(struct, str):
-        struct = Structure.from_file(struct)
+        tstruct = Structure.from_file(struct)
+    else:
+        tstruct = struct
 
     dQ = get_dQ(ground, excited)
 
     excited_coords = excited.cart_coords
     ground_coords = ground.cart_coords
-    struct_coords = struct.cart_coords
+    struct_coords = tstruct.cart_coords
 
     dx = excited_coords - ground_coords
     ind = np.abs(dx) > tol
