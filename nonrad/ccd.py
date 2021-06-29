@@ -8,7 +8,6 @@ This module contains various convenience utilities for working with and
 preparing input for nonrad.
 """
 
-from itertools import groupby
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -82,7 +81,8 @@ def get_Q_from_struct(
         ground: Structure,
         excited: Structure,
         struct: Structure,
-        tol: float = 1e-4
+        tol: float = 1e-4,
+        nround: int = 5,
 ) -> float:
     """Calculate the Q value for a given structure.
 
@@ -101,6 +101,8 @@ def get_Q_from_struct(
     tol : float
         distance cutoff to throw away coordinates for determining Q (sites that
         don't move very far could introduce numerical noise)
+    nround : int
+        number of decimal places to round to in determining Q value
 
     Returns
     -------
@@ -111,15 +113,18 @@ def get_Q_from_struct(
         struct = Structure.from_file(struct)
 
     dQ = get_dQ(ground, excited)
-    possible_x = []
-    for i, site in enumerate(struct):
-        for j in range(3):
-            dx = excited[i].coords[j] - ground[i].coords[j]
-            if np.abs(dx) < tol:
-                continue
-            possible_x.append((site.coords[j] - ground[i].coords[j]) / dx)
-    spossible_x = np.sort(np.round(possible_x, 6))
-    return dQ * max(groupby(spossible_x), key=lambda x: len(list(x[1])))[0]
+
+    excited_coords = excited.cart_coords
+    ground_coords = ground.cart_coords
+    struct_coords = struct.cart_coords
+
+    dx = excited_coords - ground_coords
+    ind = np.abs(dx) > tol
+
+    poss_x = np.round((struct_coords - ground_coords)[ind] / dx[ind], nround)
+    val, count = np.unique(poss_x, return_counts=True)
+
+    return dQ * val[np.argmax(count)]
 
 
 def get_PES_from_vaspruns(
