@@ -85,7 +85,7 @@ def get_Wif_from_wavecars(
         electron-phonon matrix element Wif in units of
         eV amu^{-1/2} Angstrom^{-1} for each bulk_index
     """
-    bulk_index = np.array(bulk_index)
+    bulk_index = np.array(bulk_index, ndmin=1)
     initial_wavecar = Wavecar(init_wavecar_path)
     if initial_wavecar.spin == 2:
         psi_i = initial_wavecar.coeffs[spin][kpoint-1][def_index-1]
@@ -121,7 +121,7 @@ def get_Wif_from_wavecars(
 
     if fig is not None:
         ax = fig.subplots(1, Nbi)
-        ax = np.array(ax)
+        ax = np.array(ax, ndmin=1)
         for a, i in zip(ax, range(Nbi)):
             a.scatter(Q, matels[i, :])
             a.set_title(f'{bulk_index[i]}')
@@ -169,7 +169,7 @@ def get_Wif_from_UNK(
         electron-phonon matrix element Wif in units of
         eV amu^{-1/2} Angstrom^{-1} for each bulk_index
     """
-    bulk_index = np.array(bulk_index)
+    bulk_index = np.array(bulk_index, ndmin=1)
     initial_unk = Unk.from_file(init_unk_path)
     psi_i = initial_unk.data[def_index-1].flatten()
 
@@ -195,7 +195,7 @@ def get_Wif_from_UNK(
 
     if fig is not None:
         ax = fig.subplots(1, Nbi)
-        ax = np.array(ax)
+        ax = np.array(ax, ndmin=1)
         for a, i in zip(ax, range(Nbi)):
             a.scatter(Q, matels[i, :])
             a.set_title(f'{bulk_index[i]}')
@@ -278,7 +278,7 @@ def get_Wif_from_WSWQ(
         electron-phonon matrix element Wif in units of
         eV amu^{-1/2} Angstrom^{-1} for each bulk_index
     """
-    bulk_index = np.array(bulk_index)
+    bulk_index = np.array(bulk_index, ndmin=1)
 
     Nw, Nbi = (len(wswqs), len(bulk_index))
     Q, matels, deig = (np.zeros(Nw+1), np.zeros((Nbi, Nw+1)), np.zeros(Nbi))
@@ -301,7 +301,7 @@ def get_Wif_from_WSWQ(
 
     if fig is not None:
         ax = fig.subplots(1, Nbi)
-        ax = np.array(ax)
+        ax = np.array(ax, ndmin=1)
         for a, i in zip(ax, range(Nbi)):
             tq = np.linspace(np.min(Q), np.max(Q), 100)
             a.scatter(Q, matels[i, :])
