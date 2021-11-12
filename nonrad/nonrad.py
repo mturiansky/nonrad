@@ -9,11 +9,11 @@ capture coefficient from first-principles.
 """
 
 import warnings
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 from scipy import constants as const
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, PchipInterpolator
 
 try:
     from numba import njit, vectorize
@@ -189,7 +189,7 @@ def get_C(
         volume: float,
         g: int = 1,
         T: Union[float, np.ndarray] = 300.,
-        sigma: Optional[float] = None,
+        sigma: Union[str, float] = 'pchip',
         occ_tol: float = 1e-4,
         overlap_method: str = 'Integral'
 ) -> Union[float, np.ndarray]:
@@ -216,11 +216,13 @@ def get_C(
         degeneracy factor of the final state
     T : float, np.array(dtype=float)
         temperature or a np.array of temperatures in K
-    sigma : None or float
+    sigma : 'pchip', 'cubic', or float
         smearing parameter in eV for replacement of the delta functions with
-        gaussians. A value of None corresponds to interpolation instead of
-        gaussian smearing. The default is None and is recommended for improved
-        accuracy.
+        gaussians. A value of 'pchip' or 'cubic' corresponds to interpolation
+        instead of gaussian smearing, utilizing PCHIP or cubic spline
+        interpolaton. PCHIP is preferred to cubic spline as cubic spline can
+        result in negative values when small rates are found. The default is
+        'pchip' and is recommended for improved accuracy.
     occ_tol : float
         criteria to determine the maximum quantum number for overlaps based on
         the Bose weights
@@ -265,7 +267,7 @@ def get_C(
     R = 0.
     for m in np.arange(Ni-1):
         weight_m = np.exp(-m * wi / kT) / Z
-        if sigma is None:
+        if isinstance(sigma, str):
             # interpolation to replace delta functions
             E, matels = (np.zeros(Nf), np.zeros(Nf))
             for n in np.arange(Nf):
@@ -278,9 +280,13 @@ def get_C(
                         np.sqrt(Factor3) * dQ * ovl[m, n]
                 E[n] = n*wf - m*wi
                 matels[n] = np.abs(np.conj(matel) * matel)
-            f = interp1d(E, matels, kind='cubic', bounds_error=False,
-                         fill_value=0.)
-            R = R + weight_m * (f(dE) * np.sum(matels) / np.trapz(f(t), x=t))
+            if sigma[0].lower() == 'c':
+                f = interp1d(E, matels, kind='cubic', bounds_error=False,
+                             fill_value=0.)
+            else:
+                f = PchipInterpolator(E, matels, extrapolate=False)
+            R = R + weight_m * (f(dE) * np.sum(matels)
+                                / np.trapz(np.nan_to_num(f(t)), x=t))
         else:
             # gaussian smearing with given sigma to replace delta functions
             for n in np.arange(Nf):
