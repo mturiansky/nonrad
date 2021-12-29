@@ -29,8 +29,8 @@ class ElphonTest(unittest.TestCase):
 
     def test__compute_matel(self):
         N = 10
-        H = np.random.rand(N, N).astype(np.complex) + \
-            1j*np.random.rand(N, N).astype(np.complex)
+        H = np.random.rand(N, N).astype(complex) + \
+            1j*np.random.rand(N, N).astype(complex)
         H = H + np.conj(H).T
         _, ev = np.linalg.eigh(H)
         for i, j in product(range(N), range(N)):

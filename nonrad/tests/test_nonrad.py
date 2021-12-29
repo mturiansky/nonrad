@@ -79,7 +79,7 @@ class GetCTest(unittest.TestCase):
             'volume': 1100,
             'g': 1,
             'T': 300,
-            'sigma': None,
+            'sigma': 'pchip',
             'occ_tol': 1e-4,
             'overlap_method': 'Integrate'
         }
@@ -104,6 +104,31 @@ class GetCTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             get_C(**self.args)
 
+    def test_cubic(self):
+        self.args['sigma'] = 'cubic'
+        self.assertGreater(get_C(**self.args), 0.)
+
+    def test_cubic_failuer(self):
+        # should result in a negative C, which doesn't make sense
+        self.args = {
+            'dQ': 0.3,
+            'dE': 1.0,
+            'wi': 0.065,
+            'wf': 0.065,
+            'Wif': 0.3,
+            'volume': 1.0,
+            'g': 1,
+            'T': 300,
+            'sigma': 'cubic',
+            'occ_tol': 1e-4,
+            'overlap_method': 'Integrate'
+        }
+        self.assertLess(get_C(**self.args), 0.)
+
+        # fixed with pchip
+        self.args['sigma'] = 'pchip'
+        self.assertGreater(get_C(**self.args), 0.)
+
     def test_gaussian(self):
         for sigma in np.linspace(0.1, 5, 5):
             self.args['sigma'] = sigma
@@ -125,6 +150,9 @@ class GetCTest(unittest.TestCase):
         self.assertGreater(get_C(**self.args), 0.)
         self.args['occ_tol'] = 1.
         self.args['dE'] = 150 * self.args['wf']
+        with self.assertRaises(ValueError):
+            get_C(**self.args)
+        self.args['sigma'] = 'cubic'
         with self.assertWarns(RuntimeWarning):
             get_C(**self.args)
 
