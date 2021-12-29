@@ -15,5 +15,5 @@ from nonrad.nonrad import get_C
 __all__ = ['get_C']
 __author__ = 'Mark E. Turiansky'
 __email__ = 'mturiansky@physics.ucsb.edu'
-with open(Path(__file__).parent / 'VERSION', 'r') as f:
+with open(Path(__file__).parent / 'VERSION', 'r', encoding='utf8') as f:
     __version__ = f.readline().strip()
