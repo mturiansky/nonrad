@@ -7,10 +7,39 @@ import numpy as np
 from numpy.polynomial.hermite import hermval
 from scipy.special import factorial
 
-from nonrad.nonrad import analytic_overlap_NM, fact, get_C, herm, overlap_NM
+from nonrad.nonrad import (analytic_overlap_NM, fact, fast_overlap_NM, get_C,
+                           herm, overlap_NM)
 
 
 class OverlapTest(unittest.TestCase):
+    def test_fast_overlap_NM(self):
+        DQ, w1, w2 = (0.00, 0.03, 0.03)
+        for m, n in product(range(10), range(10)):
+            if m == n:
+                self.assertAlmostEqual(fast_overlap_NM(DQ, w1, w2, m, n), 1.)
+            else:
+                self.assertAlmostEqual(fast_overlap_NM(DQ, w1, w2, m, n), 0.)
+        DQ, w1, w2 = (1.00, 0.03, 0.03)
+        for m, n in product(range(10), range(10)):
+            if m == n:
+                self.assertNotAlmostEqual(
+                    fast_overlap_NM(DQ, w1, w2, m, n), 1.
+                )
+            else:
+                self.assertNotAlmostEqual(
+                    fast_overlap_NM(DQ, w1, w2, m, n), 0.
+                )
+        DQ, w1, w2 = (1.00, 0.15, 0.03)
+        for m, n in product(range(10), range(10)):
+            if m == n:
+                self.assertNotAlmostEqual(
+                    fast_overlap_NM(DQ, w1, w2, m, n), 1.
+                )
+            else:
+                self.assertNotAlmostEqual(
+                    fast_overlap_NM(DQ, w1, w2, m, n), 0.
+                )
+
     def test_overlap_NM(self):
         DQ, w1, w2 = (0.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
