@@ -55,6 +55,9 @@ LOOKUP_TABLE = np.array([
 # we should probably check this to be safe. 5000 is arbitrary also.
 QQ = np.linspace(-30., 30., 5000)
 
+# grid and weights for Hermite-Gauss quadrature in fast_overlap_NM
+hgx, hgw = np.polynomial.hermite.hermgauss(256)
+
 
 @njit(cache=True)
 def fact(n: int) -> float:
@@ -124,6 +127,49 @@ def overlap_NM(
 
 
 @njit(cache=True)
+def fast_overlap_NM(
+        dQ: float,
+        w1: float,
+        w2: float,
+        n1: int,
+        n2: int
+) -> float:
+    """Compute the overlap between two displaced harmonic oscillators.
+
+    This function computes the overlap integral between two harmonic
+    oscillators with frequencies w1, w2 that are displaced by dQ for the
+    quantum numbers n1, n2. The integral is computed using Hermite-Gauss
+    quadrature; this method requires an order of magnitude less grid points
+    than the trapezoid method.
+
+    Parameters
+    ----------
+    dQ : float
+        displacement between harmonic oscillators in amu^{1/2} Angstrom
+    w1, w2 : float
+        frequencies of the harmonic oscillators in eV
+    n1, n2 : integer
+        quantum number of the overlap integral to calculate
+
+    Returns
+    -------
+    np.longdouble
+        overlap of the two harmonic oscillator wavefunctions
+    """
+    fw1, fw2 = (factor * w1, factor * w2)
+    x2Q = np.sqrt(2. / (fw1 + fw2))
+
+    def _g(Q):
+        h1 = herm_vec(np.sqrt(fw1)*(Q-dQ), n1) \
+            / np.sqrt(2.**n1 * fact(n1)) * (fw1/np.pi)**(0.25)
+        h2 = herm_vec(np.sqrt(fw2)*Q, n2) \
+            / np.sqrt(2.**n2 * fact(n2)) * (fw2/np.pi)**(0.25)
+        return np.exp(fw1*dQ*(Q-dQ/2.)) * h1 * h2
+
+    return x2Q * np.sum(hgw * _g(x2Q*hgx))
+
+
+@njit(cache=True)
 def analytic_overlap_NM(
         DQ: float,
         w1: float,
@@ -189,7 +235,7 @@ def get_C(
         T: Union[float, np.ndarray] = 300.,
         sigma: Union[str, float] = 'pchip',
         occ_tol: float = 1e-5,
-        overlap_method: str = 'Integral'
+        overlap_method: str = 'HermiteGauss'
 ) -> Union[float, np.ndarray]:
     """Compute the nonradiative capture coefficient.
 
@@ -226,7 +272,7 @@ def get_C(
         the Bose weights
     overlap_method : str
         method for evaluating the overlaps (only the first letter is checked)
-        allowed values => ['Analytic', 'Integral']
+        allowed values => ['Analytic', 'Integral', 'HermiteGauss']
 
     Returns
     -------
@@ -265,6 +311,8 @@ def get_C(
                 ovl[m, n] = analytic_overlap_NM(dQ, wi, wf, m, n)
             elif overlap_method.lower()[0] == 'i':
                 ovl[m, n] = overlap_NM(dQ, wi, wf, m, n)
+            elif overlap_method.lower()[0] == 'h':
+                ovl[m, n] = fast_overlap_NM(dQ, wi, wf, m, n)
             else:
                 raise ValueError(f'Invalid overlap method: {overlap_method}')
 
