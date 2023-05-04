@@ -48,3 +48,7 @@ select = [
     "NPY",
 ]
 extend-exclude = ["docs"]
+
+[tool.mypy]
+ignore_missing_imports = "True"
+plugins = "numpy.typing.mypy_plugin"

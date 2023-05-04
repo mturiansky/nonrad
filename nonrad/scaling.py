@@ -7,7 +7,7 @@ This module provides various utilities that are necessary to scale the
 capture coefficient to the final value.
 """
 from itertools import groupby
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union
 
 import numpy as np
 from numpy.polynomial.laguerre import laggauss
@@ -130,7 +130,7 @@ def distance_PBC(a: np.ndarray, b: np.ndarray, lattice: np.ndarray) -> float:
     float
         distance
     """
-    min_dist = np.inf
+    min_dist: Any = np.inf
     for i in [-1, 0, 1]:
         for j in [-1, 0, 1]:
             for k in [-1, 0, 1]:
