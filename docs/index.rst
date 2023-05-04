@@ -10,7 +10,7 @@
 Nonrad
 ======
 
-.. image:: https://img.shields.io/github/workflow/status/mturiansky/nonrad/nonrad%20continuous%20integration
+.. image:: https://img.shields.io/github/actions/workflow/status/mturiansky/nonrad/ci.yml
    :alt: Build Badge
 .. image:: https://readthedocs.org/projects/nonrad/badge/?version=latest
    :alt: Docs Badge
