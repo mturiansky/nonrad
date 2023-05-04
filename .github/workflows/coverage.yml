@@ -17,6 +17,6 @@ jobs:
         pdm install -dG test
     - name: Generate coverage report
       run: |
-        pdm remove numba
+        pdm remove -L pdm.new.lock numba
         pdm run pytest --cov-report=xml --cov=nonrad nonrad
         bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
