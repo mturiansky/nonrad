@@ -6,25 +6,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Cache pip dependencies
-      uses: actions/cache@v2
+    - uses: actions/checkout@v3
+    - name: Set up PDM
+      uses: pdm-project/setup-pdm@v3
       with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-          ${{ runner.os }}-
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.11
+        python-version: '3.11'
+        cache: True
     - name: Install dependencies
       run: |
-        pip install --upgrade pip setuptools wheel
-        pip install -e .[dev]
+        pdm install -dG test
     - name: Generate coverage report
       run: |
-        pip uninstall -y numba
-        pytest --cov-report=xml --cov=nonrad nonrad
+        pdm remove numba
+        pdm run pytest --cov-report=xml --cov=nonrad nonrad
         bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
