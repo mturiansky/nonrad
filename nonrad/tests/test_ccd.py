@@ -7,8 +7,13 @@ import warnings
 import numpy as np
 from pymatgen.core import Lattice, Structure
 
-from nonrad.ccd import (get_cc_structures, get_dQ, get_omega_from_PES,
-                        get_PES_from_vaspruns, get_Q_from_struct)
+from nonrad.ccd import (
+    get_cc_structures,
+    get_dQ,
+    get_omega_from_PES,
+    get_PES_from_vaspruns,
+    get_Q_from_struct,
+)
 from nonrad.nonrad import AMU2KG, ANGS2M, EV2J, HBAR
 from nonrad.tests import TEST_FILES, FakeAx
 

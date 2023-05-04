@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) Chris G. Van de Walle
 # Distributed under the terms of the MIT License.
 

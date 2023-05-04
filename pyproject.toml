@@ -1,0 +1,50 @@
+[tool.pdm]
+
+[tool.pdm.dev-dependencies]
+test = [
+    "pytest>=7.3.1",
+    "pytest-cov>=4.0.0",
+    "coverage>=7.2.5",
+]
+docs = [
+    "sphinx>=6.2.1",
+    "sphinx-rtd-theme>=1.2.0",
+]
+lint = [
+    "ruff>=0.0.264",
+    "mypy>=1.2.0",
+]
+[project]
+name = "nonrad"
+version = "1.1.0"
+description = "Implementation for computing nonradiative recombination rates in semiconductors"
+authors = [
+    {name = "Mark E. Turiansky", email = "mturiansky@ucsb.edu"},
+]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+dependencies = [
+    "numpy>=1.24.3",
+    "scipy>=1.9.3",
+    "pymatgen>=2023.3.23",
+    "monty>=2023.4.10",
+    "numba>=0.57.0",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.ruff]
+select = [
+    "F",
+    "E",
+    "W",
+    "I",
+    "UP",
+    "B",
+    "A",
+    "NPY",
+]
+extend-exclude = ["docs"]

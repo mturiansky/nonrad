@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) Chris G. Van de Walle
 # Distributed under the terms of the MIT License.
 
@@ -13,7 +12,7 @@ from typing import Union
 
 import numpy as np
 from scipy import constants as const
-from scipy.interpolate import interp1d, PchipInterpolator
+from scipy.interpolate import PchipInterpolator, interp1d
 
 try:
     from numba import njit, vectorize
@@ -250,7 +249,7 @@ def get_C(
     # warn if there are large values, can be ignored if you're confident
     if Ni > 150 or Nf > 150:
         warnings.warn(f'Large value for Ni, Nf encountered: ({Ni}, {Nf})',
-                      RuntimeWarning)
+                      RuntimeWarning, stacklevel=2)
 
     # precompute values of the overlap
     ovl = np.zeros((Ni, Nf), dtype=np.longdouble)

@@ -5,10 +5,15 @@ import unittest
 import numpy as np
 from scipy import constants as const
 
-from nonrad.scaling import (charged_supercell_scaling,
-                            charged_supercell_scaling_VASP, distance_PBC,
-                            find_charge_center, radial_distribution,
-                            sommerfeld_parameter, thermal_velocity)
+from nonrad.scaling import (
+    charged_supercell_scaling,
+    charged_supercell_scaling_VASP,
+    distance_PBC,
+    find_charge_center,
+    radial_distribution,
+    sommerfeld_parameter,
+    thermal_velocity,
+)
 from nonrad.tests import TEST_FILES, FakeFig
 
 

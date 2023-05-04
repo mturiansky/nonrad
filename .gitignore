@@ -7,3 +7,5 @@ build/
 WAVECAR*
 _build/
 _static/
+.pdm-python
+pdm.lock

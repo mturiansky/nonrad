@@ -9,8 +9,13 @@ import numpy as np
 from pymatgen.core import Lattice, Structure
 
 from nonrad.ccd import get_Q_from_struct
-from nonrad.elphon import (_compute_matel, _read_WSWQ, get_Wif_from_UNK,
-                           get_Wif_from_wavecars, get_Wif_from_WSWQ)
+from nonrad.elphon import (
+    _compute_matel,
+    _read_WSWQ,
+    get_Wif_from_UNK,
+    get_Wif_from_wavecars,
+    get_Wif_from_WSWQ,
+)
 from nonrad.tests import TEST_FILES, FakeFig
 
 
@@ -29,8 +34,9 @@ class ElphonTest(unittest.TestCase):
 
     def test__compute_matel(self):
         N = 10
-        H = np.random.rand(N, N).astype(complex) + \
-            1j*np.random.rand(N, N).astype(complex)
+        rng = np.random.default_rng()
+        H = rng.random(size=(N, N)).astype(complex) + \
+            1j*rng.random(size=(N, N)).astype(complex)
         H = H + np.conj(H).T
         _, ev = np.linalg.eigh(H)
         for i, j in product(range(N), range(N)):
