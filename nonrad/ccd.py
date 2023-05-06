@@ -14,7 +14,7 @@ from pymatgen.core import Structure
 from pymatgen.io.vasp.outputs import Vasprun
 from scipy.optimize import curve_fit
 
-from nonrad.nonrad import AMU2KG, ANGS2M, EV2J, HBAR
+from nonrad.constants import AMU2KG, ANGS2M, EV2J, HBAR
 
 
 def get_cc_structures(
@@ -213,7 +213,12 @@ def get_omega_from_PES(
     return HBAR * popt[0] * np.sqrt(EV2J / (ANGS2M**2 * AMU2KG))
 
 
-def get_barrier_harmonic(dQ: float, dE: float, wi: float, wf: float) -> float:
+def get_barrier_harmonic(
+        dQ: float,
+        dE: float,
+        wi: float,
+        wf: float
+) -> Optional[float]:
     """Calculate the barrier height within the Harmonic approximation.
 
     Parameters
@@ -227,8 +232,8 @@ def get_barrier_harmonic(dQ: float, dE: float, wi: float, wf: float) -> float:
 
     Returns
     -------
-    float
-        barrier energy in eV, raises an error if there is no crossing point
+    float, None
+        barrier energy in eV or None if no crossing found
     """
     swi = wi / HBAR / np.sqrt(EV2J / (ANGS2M**2 * AMU2KG))
     swf = wf / HBAR / np.sqrt(EV2J / (ANGS2M**2 * AMU2KG))
@@ -240,6 +245,6 @@ def get_barrier_harmonic(dQ: float, dE: float, wi: float, wf: float) -> float:
 
     # no crossing point was found
     if not np.any(np.isreal(r)):
-        raise ValueError('Potential energy surfaces do not cross.')
+        return None
 
     return np.min(0.5 * swf**2 * r[np.isreal(r)]**2) - dE

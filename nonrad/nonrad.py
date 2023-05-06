@@ -15,6 +15,7 @@ from scipy import constants as const
 from scipy.interpolate import PchipInterpolator, interp1d
 
 from nonrad.ccd import get_barrier_harmonic
+from nonrad.constants import AMU2KG, ANGS2M, EV2J, HBAR
 
 try:
     from numba import njit, vectorize
@@ -36,10 +37,6 @@ except ModuleNotFoundError:
         """Wrap hermval function."""
         return hermval(x, [0.]*n + [1.])
 
-HBAR = const.hbar / const.e                     # in units of eV.s
-EV2J = const.e                                  # 1 eV in Joules
-AMU2KG = const.physical_constants['atomic mass constant'][0]
-ANGS2M = 1e-10                                  # angstrom in meters
 
 factor = ANGS2M**2 * AMU2KG / HBAR / HBAR / EV2J
 Factor2 = const.hbar / ANGS2M**2 / AMU2KG
@@ -191,7 +188,7 @@ def get_C(
         g: int = 1,
         T: Union[float, np.ndarray] = 300.,
         sigma: Union[str, float] = 'pchip',
-        occ_tol: float = 1e-4,
+        occ_tol: float = 1e-5,
         overlap_method: str = 'Integral'
 ) -> Union[float, np.ndarray]:
     """Compute the nonradiative capture coefficient.
@@ -248,11 +245,11 @@ def get_C(
     if tNf > Nf:
         Nf = tNf
 
-    N_barrier = np.ceil(get_barrier_harmonic(dQ, dE, wi, wf) / wi).astype(int)
-    if N_barrier > Ni:
+    if (Eb := get_barrier_harmonic(dQ, dE, wi, wf)) is not None \
+            and (N_barrier := np.ceil(Eb / wi).astype(int)) > Ni:
         warnings.warn('Number of initial phonon states included does not '
-                      f'reach the barrier height ({N_barrier} < {Ni}). You'
-                      'may want to test the sensitivity to occ_tol.',
+                      f'reach the barrier height ({N_barrier} > {Ni}). '
+                      'You may want to test the sensitivity to occ_tol.',
                       RuntimeWarning, stacklevel=2)
 
     # warn if there are large values, can be ignored if you're confident
