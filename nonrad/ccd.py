@@ -211,3 +211,35 @@ def get_omega_from_PES(
         ax.plot(q, f(q, *popt))
 
     return HBAR * popt[0] * np.sqrt(EV2J / (ANGS2M**2 * AMU2KG))
+
+
+def get_barrier_harmonic(dQ: float, dE: float, wi: float, wf: float) -> float:
+    """Calculate the barrier height within the Harmonic approximation.
+
+    Parameters
+    ----------
+    dQ : float
+        displacement between harmonic oscillators in amu^{1/2} Angstrom
+    dE : float
+        energy offset between the two harmonic oscillators
+    wi, wf : float
+        frequencies of the harmonic oscillators in eV
+
+    Returns
+    -------
+    float
+        barrier energy in eV, raises an error if there is no crossing point
+    """
+    swi = wi / HBAR / np.sqrt(EV2J / (ANGS2M**2 * AMU2KG))
+    swf = wf / HBAR / np.sqrt(EV2J / (ANGS2M**2 * AMU2KG))
+    r = np.roots([
+        0.5 * (swi**2 - swf**2),
+        -swi**2 * dQ,
+        dE + 0.5 * swi**2 * dQ**2,
+    ])
+
+    # no crossing point was found
+    if not np.any(np.isreal(r)):
+        raise ValueError('Potential energy surfaces do not cross.')
+
+    return np.min(0.5 * swf**2 * r[np.isreal(r)]**2) - dE

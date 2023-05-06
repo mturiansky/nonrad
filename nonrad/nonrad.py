@@ -14,6 +14,8 @@ import numpy as np
 from scipy import constants as const
 from scipy.interpolate import PchipInterpolator, interp1d
 
+from nonrad.ccd import get_barrier_harmonic
+
 try:
     from numba import njit, vectorize
 
@@ -245,6 +247,13 @@ def get_C(
     tNf = np.ceil((dE + Ni*wi) / wf).astype(int)
     if tNf > Nf:
         Nf = tNf
+
+    N_barrier = np.ceil(get_barrier_harmonic(dQ, dE, wi, wf) / wi).astype(int)
+    if N_barrier > Ni:
+        warnings.warn('Number of initial phonon states included does not '
+                      f'reach the barrier height ({N_barrier} < {Ni}). You'
+                      'may want to test the sensitivity to occ_tol.',
+                      RuntimeWarning, stacklevel=2)
 
     # warn if there are large values, can be ignored if you're confident
     if Ni > 150 or Nf > 150:
