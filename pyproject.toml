@@ -52,6 +52,10 @@ select = [
     "B",
     "A",
     "NPY",
+    "PL",
+]
+ignore = [
+    "PLR",
 ]
 extend-exclude = ["docs"]
 
