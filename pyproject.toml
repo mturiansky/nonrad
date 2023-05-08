@@ -30,6 +30,23 @@ authors = [
 requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "MIT"}
+keywords = [
+    "physics",
+    "materials",
+    "science",
+    "VASP",
+    "recombination",
+    "Shockley-Read-Hall",
+]
+classifiers=[
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "numpy>=1.24.3",
     "scipy>=1.9.3",
@@ -37,6 +54,10 @@ dependencies = [
     "monty>=2023.4.10",
     "numba>=0.57.0",
 ]
+
+[project.urls]
+documentation = "https://nonrad.readthedocs.io"
+repository = "https://github.com/mturiansky/nonrad"
 
 [build-system]
 requires = ["pdm-backend"]
