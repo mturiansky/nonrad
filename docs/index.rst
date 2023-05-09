@@ -5,6 +5,7 @@
    compatibility
    citation
    Tutorial<tutorial>
+   tips
    API Docs<modules>
 
 Nonrad
