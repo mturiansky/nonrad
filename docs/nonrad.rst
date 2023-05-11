@@ -21,6 +21,7 @@ Submodules
    :maxdepth: 4
 
    nonrad.ccd
+   nonrad.constants
    nonrad.elphon
    nonrad.nonrad
    nonrad.scaling
