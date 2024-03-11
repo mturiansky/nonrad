@@ -8,7 +8,8 @@ strength using different first-principles codes.
 """
 
 import re
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from collections.abc import Sequence
+from typing import Union
 
 import numpy as np
 from monty.io import zopen
@@ -38,14 +39,14 @@ def _compute_matel(psi0: np.ndarray, psi1: np.ndarray) -> float:
 
 
 def get_Wif_from_wavecars(
-        wavecars: List,
+        wavecars: list,
         init_wavecar_path: str,
         def_index: int,
         bulk_index: Union[np.ndarray, Sequence[int]],
         spin: int = 0,
         kpoint: int = 1,
         fig=None
-) -> List:
+) -> list:
     """Compute the electron-phonon matrix element using the WAVECARs.
 
     This function reads in the pseudo-wavefunctions from the WAVECAR files and
@@ -130,13 +131,13 @@ def get_Wif_from_wavecars(
 
 
 def get_Wif_from_UNK(
-        unks: List,
+        unks: list,
         init_unk_path: str,
         def_index: int,
         bulk_index: Union[np.ndarray, Sequence[int]],
         eigs: Sequence[float],
         fig=None
-) -> List:
+) -> list:
     """Compute the electron-phonon matrix element using UNK files.
 
     Evaluate the electron-phonon coupling matrix element using the information
@@ -203,7 +204,7 @@ def get_Wif_from_UNK(
             for i, bi in enumerate(bulk_index)]
 
 
-def _read_WSWQ(fname: str) -> Dict:
+def _read_WSWQ(fname: str) -> dict:
     """Read the WSWQ file from VASP.
 
     Parameters
@@ -218,7 +219,7 @@ def _read_WSWQ(fname: str) -> Dict:
         indices and maps it to a complex number
     """
     # whoa, this is horrific
-    wswq: Dict[Optional[Tuple[int, int]], Dict[Tuple[int, int], complex]] = {}
+    wswq: dict[Union[tuple[int, int], None], dict[tuple[int, int], complex]] = {}
     current = None
     with zopen(fname, 'r') as f:
         for line in f:
@@ -239,14 +240,14 @@ def _read_WSWQ(fname: str) -> Dict:
 
 
 def get_Wif_from_WSWQ(
-        wswqs: List,
+        wswqs: list,
         initial_vasprun: str,
         def_index: int,
         bulk_index: Union[np.ndarray, Sequence[int]],
         spin: int = 0,
         kpoint: int = 1,
         fig=None
-) -> List:
+) -> list:
     """Compute the electron-phonon matrix element using the WSWQ files.
 
     Read in the WSWQ files to obtain the overlaps. Then compute the electron-

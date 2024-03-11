@@ -63,7 +63,7 @@ requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 [tool.ruff]
-select = [
+lint.select = [
     "F",
     "E",
     "W",
@@ -74,7 +74,7 @@ select = [
     "NPY",
     "PL",
 ]
-ignore = [
+lint.ignore = [
     "PLR",
 ]
 extend-exclude = ["docs"]

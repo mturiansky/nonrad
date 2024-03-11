@@ -7,7 +7,7 @@ This module contains various convenience utilities for working with and
 preparing input for nonrad.
 """
 
-from typing import List, Optional, Tuple, Union
+from typing import Union
 
 import numpy as np
 from pymatgen.core import Structure
@@ -22,7 +22,7 @@ def get_cc_structures(
         excited: Structure,
         displacements: np.ndarray,
         remove_zero: bool = True
-) -> Tuple[List, List]:
+) -> tuple[list, list]:
     """Generate the structures for a CC diagram.
 
     Parameters
@@ -131,9 +131,9 @@ def get_Q_from_struct(
 def get_PES_from_vaspruns(
         ground: Structure,
         excited: Structure,
-        vasprun_paths: List[str],
+        vasprun_paths: list[str],
         tol: float = 0.001
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Extract the potential energy surface (PES) from vasprun.xml files.
 
     This function reads in vasprun.xml files to extract the energy and Q value
@@ -171,9 +171,9 @@ def get_PES_from_vaspruns(
 def get_omega_from_PES(
         Q: np.ndarray,
         energy: np.ndarray,
-        Q0: Optional[float] = None,
+        Q0: Union[float, None] = None,
         ax=None,
-        q: Optional[np.ndarray] = None
+        q: Union[np.ndarray, None] = None
 ) -> float:
     """Calculate the harmonic phonon frequency for the given PES.
 
@@ -218,7 +218,7 @@ def get_barrier_harmonic(
         dE: float,
         wi: float,
         wf: float
-) -> Optional[float]:
+) -> Union[float, None]:
     """Calculate the barrier height within the Harmonic approximation.
 
     Parameters

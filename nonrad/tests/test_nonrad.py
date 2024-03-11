@@ -7,8 +7,14 @@ import numpy as np
 from numpy.polynomial.hermite import hermval
 from scipy.special import factorial
 
-from nonrad.nonrad import (analytic_overlap_NM, fact, fast_overlap_NM, get_C,
-                           herm, overlap_NM)
+from nonrad.nonrad import (
+    analytic_overlap_NM,
+    fact,
+    fast_overlap_NM,
+    get_C,
+    herm,
+    overlap_NM,
+)
 
 
 class OverlapTest(unittest.TestCase):

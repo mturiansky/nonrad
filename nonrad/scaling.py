@@ -7,7 +7,7 @@ This module provides various utilities that are necessary to scale the
 capture coefficient to the final value.
 """
 from itertools import groupby
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 from numpy.polynomial.laguerre import laggauss
@@ -145,7 +145,7 @@ def radial_distribution(
         density: np.ndarray,
         point: np.ndarray,
         lattice: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Compute the radial distribution.
 
     Computes the radial distribution of the density around the given point with
