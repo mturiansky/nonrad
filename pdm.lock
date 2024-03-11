@@ -5,7 +5,7 @@
 groups = ["default", "docs", "lint", "test"]
 strategy = ["cross_platform"]
 lock_version = "4.4.1"
-content_hash = "sha256:dabc67f14371a9b41429bb2fcebed4612abe8863eb311c895b2053dc09bd61c0"
+content_hash = "sha256:6feb2477a4d1329719a439af6197e1e573aeb01c355d063faf99af672e313e43"
 
 [[package]]
 name = "alabaster"
