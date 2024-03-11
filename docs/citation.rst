@@ -32,3 +32,22 @@ and
         year = {2021},
         pages = {108056},
     }
+
+
+If you use the functionality for the Sommerfeld parameter in 2 and 1 dimensions, then please cite
+
+.. code-block:: tex
+
+    @article{turiansky_dimensionality_2024,
+        title = {Dimensionality Effects on Trap-Assisted Recombination: The {{Sommerfeld}} Parameter},
+        shorttitle = {Dimensionality Effects on Trap-Assisted Recombination},
+        author = {Turiansky, Mark E and Alkauskas, Audrius and Van De Walle, Chris G},
+        year = {2024},
+        month = may,
+        journal = {J. Phys.: Condens. Matter},
+        volume = {36},
+        number = {19},
+        pages = {195902},
+        doi = {10.1088/1361-648X/ad2588},
+    }
+
