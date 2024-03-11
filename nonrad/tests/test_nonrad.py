@@ -109,7 +109,7 @@ class GetCTest(unittest.TestCase):
             'g': 1,
             'T': 300,
             'sigma': 'pchip',
-            'occ_tol': 1e-4,
+            'occ_tol': 1e-5,
             'overlap_method': 'Integrate'
         }
 
@@ -137,7 +137,7 @@ class GetCTest(unittest.TestCase):
         self.args['sigma'] = 'cubic'
         self.assertGreater(get_C(**self.args), 0.)
 
-    def test_cubic_failuer(self):
+    def test_cubic_failure(self):
         # should result in a negative C, which doesn't make sense
         self.args = {
             'dQ': 0.3,
@@ -149,7 +149,7 @@ class GetCTest(unittest.TestCase):
             'g': 1,
             'T': 300,
             'sigma': 'cubic',
-            'occ_tol': 1e-4,
+            'occ_tol': 1e-5,
             'overlap_method': 'Integrate'
         }
         self.assertLess(get_C(**self.args), 0.)
