@@ -10,6 +10,7 @@ from itertools import groupby
 from typing import Any, Optional, Union
 
 import numpy as np
+from mpmath import whitw
 from numpy.polynomial.laguerre import laggauss
 from pymatgen.io.vasp.outputs import Wavecar
 from scipy import constants as const
@@ -25,14 +26,81 @@ except ModuleNotFoundError:
         return _njit
 
 
+def _s_k(
+        k: Union[float, np.ndarray],
+        Z: int,
+        m_eff: float,
+        eps0: float,
+        dim: int = 3,
+        x0: float = 1e-3,
+) -> Union[float, np.ndarray]:
+    """Compute the Sommerfeld parameter as a function of momentum.
+
+    Parameters
+    ----------
+    k : float, np.array(dtype=float)
+        wavevector
+    Z : int
+        Z = Q / q where Q is the charge of the defect and q is the charge of
+        the carrier. Z < 0 corresponds to attractive centers and Z > 0
+        corresponds to repulsive centers
+    m_eff : float
+        effective mass of the carrier in units of m_e (electron mass)
+    eps0 : float
+        static dielectric constant
+    dim : int
+        dimension of the system (3, 2, or 1)
+    x0 : float
+        cutoff length for 1D evaluation
+    method : str
+        specify method for evaluating sommerfeld parameter ('Integrate' or
+        'Analytic'). The default is recommended as the analytic equation may
+        introduce significant errors for the repulsive case at high T.
+
+    Returns
+    -------
+    float, np.array(dtype=float)
+        sommerfeld factor evaluated at the given temperature
+    """
+    if Z == 0:
+        return 0.
+
+    a = (eps0 / m_eff) * const.value('Bohr radius')
+    nu = Z / a / k
+    if dim == 1:
+        def _phi(Z, k, a, x, x0):
+            nu = np.abs(Z) / a / k
+            z0 = 2*1j*k*x0
+            z = 2*1j*k*np.abs(x) + z0
+
+            W1 = lambda nu, z: np.exp(z0/2) * whitw(-1j*nu, 1/2, z)     # noqa: E731
+            W2 = lambda nu, z: np.exp(-z0/2) * whitw(1j*nu, 1/2, -z)    # noqa: E731
+
+            D10 = (W1(nu, 1.01*z0) - W1(nu, 0.99*z0))/(2*0.01*z0)
+            D20 = (W2(nu, 1.01*z0) - W2(nu, 0.99*z0))/(2*0.01*z0)
+
+            N = np.sqrt(np.exp(-np.pi * nu) / 2 /
+                        (np.abs(D10)**2 + np.abs(D20)**2))
+
+            return N*(D20*W1(nu, z) - D10*W2(nu, z))
+
+        return np.vectorize(lambda q: np.abs(_phi(Z, q, a, 0., x0*a))**2)(k)
+    elif dim == 2:
+        return 2 / (1 + np.exp(2 * np.pi * nu))
+    else:
+        return 2 * np.pi * nu / (np.exp(2 * np.pi * nu) - 1)
+
+
 def sommerfeld_parameter(
         T: Union[float, np.ndarray],
         Z: int,
         m_eff: float,
         eps0: float,
+        dim: int = 3,
+        x0: float = 1e-3,
         method: str = 'Integrate'
 ) -> Union[float, np.ndarray]:
-    """Compute the sommerfeld parameter.
+    """Compute the T-dependent Sommerfeld parameter.
 
     Computes the sommerfeld parameter at a given temperature using the
     definitions in R. Pässler et al., phys. stat. sol. (b) 78, 625 (1976). We
@@ -50,6 +118,10 @@ def sommerfeld_parameter(
         effective mass of the carrier in units of m_e (electron mass)
     eps0 : float
         static dielectric constant
+    dim : int
+        dimension of the system (3, 2, or 1)
+    x0 : float
+        cutoff length for 1D evaluation
     method : str
         specify method for evaluating sommerfeld parameter ('Integrate' or
         'Analytic'). The default is recommended as the analytic equation may
@@ -64,29 +136,47 @@ def sommerfeld_parameter(
         return 1.
 
     if method.lower()[0] == 'i':
-        kT = const.k * T
-        m = m_eff * const.m_e
-        eps = (4 * np.pi * const.epsilon_0) * eps0
-        f = -2 * np.pi * Z * m * const.e**2 / const.hbar**2 / eps
+        mkT = m_eff * const.m_e * const.k * T
+        x_to_k = np.sqrt(2*mkT)/const.hbar
 
-        def s_k(k):
-            return f / k / (1 - np.exp(-f / k))
+        def _f(k, Z, m_eff, eps0, dim, x0):
+            if dim == 1:
+                return _s_k(k, Z, m_eff, eps0, dim=dim, x0=x0) / k
+            elif dim == 2:
+                return _s_k(k, Z, m_eff, eps0, dim=dim)
+            else:
+                return k * _s_k(k, Z, m_eff, eps0, dim=dim)
+
+        def _norm(mkT, dim):
+            if dim == 1:
+                return np.sqrt(np.pi*mkT/2) / const.hbar
+            elif dim == 2:
+                return mkT / const.hbar**2
+            else:
+                return np.sqrt(np.pi/2) * (mkT)**(3/2) / const.hbar**3
 
         t = 0.
         x, w = laggauss(64)
         for ix, iw in zip(x, w):
-            t += iw * np.sqrt(ix) * s_k(np.sqrt(2 * m * kT * ix) / const.hbar)
-        return t / np.sum(w * np.sqrt(x))
+            t += iw * _f(x_to_k*np.sqrt(ix), Z, m_eff, eps0, dim, x0)
+        t *= (mkT/const.hbar**2)
+        return t / _norm(mkT, dim)
 
-    # that 4*pi from Gaussian units....
     theta_b = np.pi**2 * (m_eff * const.m_e) * const.e**4 / \
         (2 * const.k * const.hbar**2 * (eps0 * 4*np.pi*const.epsilon_0)**2)
     zthetaT = Z**2 * theta_b / T
-
-    if Z < 0:
-        return 4 * np.sqrt(zthetaT / np.pi)
-    return (8 / np.sqrt(3)) * \
-        zthetaT**(2/3) * np.exp(-3 * zthetaT**(1/3))
+    if dim == 1:
+        raise ValueError('Cannot analytically evaluate Sommerfeld parameter in 1D')
+    elif dim == 2:
+        if Z < 0:
+            return 2.
+        return np.sqrt(8*np.pi/3) * \
+            (8*zthetaT)**(1/6) * np.exp(-3 * zthetaT**(1/3))
+    else:
+        if Z < 0:
+            return 4 * np.sqrt(zthetaT / np.pi)
+        return (8 / np.sqrt(3)) * \
+            zthetaT**(2/3) * np.exp(-3 * zthetaT**(1/3))
 
 
 @njit(cache=True)

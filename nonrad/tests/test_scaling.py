@@ -1,9 +1,11 @@
 # pylint: disable=C0114,C0115,C0116
 
 import unittest
+from typing import Union
 
 import numpy as np
 from scipy import constants as const
+from numpy.polynomial.laguerre import laggauss
 
 from nonrad.scaling import (
     charged_supercell_scaling,
@@ -15,6 +17,42 @@ from nonrad.scaling import (
     thermal_velocity,
 )
 from nonrad.tests import TEST_FILES, FakeFig
+
+
+def _old_sommerfeld_parameter(
+        T: Union[float, np.ndarray],
+        Z: int,
+        m_eff: float,
+        eps0: float,
+        method: str = 'Integrate'
+) -> Union[float, np.ndarray]:
+    if Z == 0:
+        return 1.
+
+    if method.lower()[0] == 'i':
+        kT = const.k * T
+        m = m_eff * const.m_e
+        eps = (4 * np.pi * const.epsilon_0) * eps0
+        f = -2 * np.pi * Z * m * const.e**2 / const.hbar**2 / eps
+
+        def s_k(k):
+            return f / k / (1 - np.exp(-f / k))
+
+        t = 0.
+        x, w = laggauss(64)
+        for ix, iw in zip(x, w):
+            t += iw * np.sqrt(ix) * s_k(np.sqrt(2 * m * kT * ix) / const.hbar)
+        return t / np.sum(w * np.sqrt(x))
+
+    # that 4*pi from Gaussian units....
+    theta_b = np.pi**2 * (m_eff * const.m_e) * const.e**4 / \
+        (2 * const.k * const.hbar**2 * (eps0 * 4*np.pi*const.epsilon_0)**2)
+    zthetaT = Z**2 * theta_b / T
+
+    if Z < 0:
+        return 4 * np.sqrt(zthetaT / np.pi)
+    return (8 / np.sqrt(3)) * \
+        zthetaT**(2/3) * np.exp(-3 * zthetaT**(1/3))
 
 
 class SommerfeldTest(unittest.TestCase):
@@ -61,7 +99,7 @@ class SommerfeldTest(unittest.TestCase):
 
     def test_compare_methods(self):
         self.args = {
-            'T': 150,
+            'T': 100,
             'Z': -1,
             'm_eff': 0.2,
             'eps0': 8.9,
@@ -79,6 +117,48 @@ class SommerfeldTest(unittest.TestCase):
         self.args['method'] = 'Integrate'
         f1 = sommerfeld_parameter(**self.args)
         self.assertGreater(np.abs(f0-f1)/f1, 0.1)
+
+    def test_old_sommerfeld(self):
+        self.args = {'m_eff': 0.2, 'eps0': 8.9}
+        for m in ['i', 'a']:
+            self.args['method'] = m
+            for t in [100, 300, 700, 900]:
+                self.args['T'] = t
+                for z in [0, 1, -1]:
+                    self.args['Z'] = z
+                    f0 = _old_sommerfeld_parameter(**self.args)
+                    f1 = sommerfeld_parameter(**self.args)
+                    self.assertAlmostEqual(f0, f1, places=2)
+
+    def test_sommerfeld_dim(self):
+        self.args = {
+            'T': 200,
+            'Z': -1,
+            'm_eff': 0.2,
+            'eps0': 8.9,
+            'dim': 2,
+            'method': 'Integrate'
+        }
+
+        self.assertAlmostEqual(sommerfeld_parameter(**self.args), 2., places=2)
+        self.args['method'] = 'a'
+        self.assertAlmostEqual(sommerfeld_parameter(**self.args), 2., places=5)
+        self.args['method'] = 'i'
+        self.args['Z'] = 1
+        self.assertLess(sommerfeld_parameter(**self.args), 1.)
+        self.args['method'] = 'a'
+        self.assertLess(sommerfeld_parameter(**self.args), 1.)
+
+        self.args['dim'] = 1
+        with self.assertRaises(ValueError):
+            self.assertLess(sommerfeld_parameter(**self.args), 1.)
+        self.args['method'] = 'i'
+        self.assertLess(sommerfeld_parameter(**self.args), 1.)
+        self.args['Z'] = -1
+        self.assertLess(sommerfeld_parameter(**self.args), 1.)
+
+        self.args['Z'] = 0
+        self.assertEqual(sommerfeld_parameter(**self.args), 1.)
 
 
 class ChargedSupercellScalingTest(unittest.TestCase):
