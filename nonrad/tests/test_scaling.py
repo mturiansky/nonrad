@@ -4,8 +4,8 @@ import unittest
 from typing import Union
 
 import numpy as np
-from scipy import constants as const
 from numpy.polynomial.laguerre import laggauss
+from scipy import constants as const
 
 from nonrad.scaling import (
     charged_supercell_scaling,
