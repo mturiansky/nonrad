@@ -70,7 +70,7 @@ nonrad = "nonrad.__main__:app"
 
 [tool.ruff]
 line-length = 99
-extend-exclude = ["docs"]
+extend-exclude = ["docs", "notebooks"]
 
 [tool.ruff.lint]
 select = ["A", "B", "D", "E", "F", "I", "NPY", "PL", "UP", "W"]
