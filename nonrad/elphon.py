@@ -9,7 +9,6 @@ strength using different first-principles codes.
 
 import re
 from collections.abc import Sequence
-from typing import Union
 
 import numpy as np
 from monty.io import zopen
@@ -42,7 +41,7 @@ def get_Wif_from_wavecars(
         wavecars: list,
         init_wavecar_path: str,
         def_index: int,
-        bulk_index: Union[np.ndarray, Sequence[int]],
+        bulk_index: np.ndarray | Sequence[int],
         spin: int = 0,
         kpoint: int = 1,
         fig=None
@@ -122,7 +121,7 @@ def get_Wif_from_wavecars(
     if fig is not None:
         ax = fig.subplots(1, Nbi)
         ax = np.array(ax, ndmin=1)
-        for a, i in zip(ax, range(Nbi)):
+        for a, i in zip(ax, range(Nbi), strict=False):
             a.scatter(Q, matels[i, :])
             a.set_title(f'{bulk_index[i]}')
 
@@ -134,7 +133,7 @@ def get_Wif_from_UNK(
         unks: list,
         init_unk_path: str,
         def_index: int,
-        bulk_index: Union[np.ndarray, Sequence[int]],
+        bulk_index: np.ndarray | Sequence[int],
         eigs: Sequence[float],
         fig=None
 ) -> list:
@@ -196,7 +195,7 @@ def get_Wif_from_UNK(
     if fig is not None:
         ax = fig.subplots(1, Nbi)
         ax = np.array(ax, ndmin=1)
-        for a, i in zip(ax, range(Nbi)):
+        for a, i in zip(ax, range(Nbi), strict=False):
             a.scatter(Q, matels[i, :])
             a.set_title(f'{bulk_index[i]}')
 
@@ -219,7 +218,7 @@ def _read_WSWQ(fname: str) -> dict:
         indices and maps it to a complex number
     """
     # whoa, this is horrific
-    wswq: dict[Union[tuple[int, int], None], dict[tuple[int, int], complex]] = {}
+    wswq: dict[tuple[int, int] | None, dict[tuple[int, int], complex]] = {}
     current = None
     with zopen(fname, 'r') as f:
         for line in f:
@@ -243,7 +242,7 @@ def get_Wif_from_WSWQ(
         wswqs: list,
         initial_vasprun: str,
         def_index: int,
-        bulk_index: Union[np.ndarray, Sequence[int]],
+        bulk_index: np.ndarray | Sequence[int],
         spin: int = 0,
         kpoint: int = 1,
         fig=None
@@ -302,7 +301,7 @@ def get_Wif_from_WSWQ(
     if fig is not None:
         ax = fig.subplots(1, Nbi)
         ax = np.array(ax, ndmin=1)
-        for a, i in zip(ax, range(Nbi)):
+        for a, i in zip(ax, range(Nbi), strict=False):
             tq = np.linspace(np.min(Q), np.max(Q), 100)
             a.scatter(Q, matels[i, :])
             a.plot(tq, np.polyval(np.polyfit(Q, matels[i, :], 1), tq))

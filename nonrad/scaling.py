@@ -7,7 +7,7 @@ This module provides various utilities that are necessary to scale the
 capture coefficient to the final value.
 """
 from itertools import groupby
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 from mpmath import whitw
@@ -27,13 +27,13 @@ except ModuleNotFoundError:
 
 
 def _s_k(
-        k: Union[float, np.ndarray],
+        k: float | np.ndarray,
         Z: int,
         m_eff: float,
         eps0: float,
         dim: int = 3,
         x0: float = 1e-3,
-) -> Union[float, np.ndarray]:
+) -> float | np.ndarray:
     """Compute the Sommerfeld parameter as a function of momentum.
 
     Parameters
@@ -92,14 +92,14 @@ def _s_k(
 
 
 def sommerfeld_parameter(
-        T: Union[float, np.ndarray],
+        T: float | np.ndarray,
         Z: int,
         m_eff: float,
         eps0: float,
         dim: int = 3,
         x0: float = 1e-3,
         method: str = 'Integrate'
-) -> Union[float, np.ndarray]:
+) -> float | np.ndarray:
     """Compute the T-dependent Sommerfeld parameter.
 
     Computes the sommerfeld parameter at a given temperature using the
@@ -157,7 +157,7 @@ def sommerfeld_parameter(
 
         t = 0.
         x, w = laggauss(64)
-        for ix, iw in zip(x, w):
+        for ix, iw in zip(x, w, strict=False):
             t += iw * _f(x_to_k*np.sqrt(ix), Z, m_eff, eps0, dim, x0)
         t *= (mkT/const.hbar**2)
         return t / _norm(mkT, dim)
@@ -277,7 +277,7 @@ def charged_supercell_scaling_VASP(
         wavecar_path: str,
         bulk_index: int,
         def_index: int = -1,
-        def_coord: Optional[np.ndarray] = None,
+        def_coord: np.ndarray | None = None,
         cutoff: float = 0.02,
         limit: float = 5.,
         spin: int = 0,
@@ -443,7 +443,7 @@ def charged_supercell_scaling(
     return plateaus[0][0]
 
 
-def thermal_velocity(T: Union[float, np.ndarray], m_eff: float):
+def thermal_velocity(T: float | np.ndarray, m_eff: float):
     """Calculate the thermal velocity at a given temperature.
 
     Parameters

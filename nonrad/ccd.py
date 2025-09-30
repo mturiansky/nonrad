@@ -7,7 +7,6 @@ This module contains various convenience utilities for working with and
 preparing input for nonrad.
 """
 
-from typing import Union
 
 import numpy as np
 from pymatgen.core import Structure
@@ -72,14 +71,14 @@ def get_dQ(ground: Structure, excited: Structure) -> float:
     """
     return np.sqrt(np.sum(list(map(
         lambda x: x[0].distance(x[1])**2 * x[0].specie.atomic_mass,
-        zip(ground, excited)
+        zip(ground, excited, strict=False)
     ))))
 
 
 def get_Q_from_struct(
         ground: Structure,
         excited: Structure,
-        struct: Union[Structure, str],
+        struct: Structure | str,
         tol: float = 1e-4,
         nround: int = 5,
 ) -> float:
@@ -171,9 +170,9 @@ def get_PES_from_vaspruns(
 def get_omega_from_PES(
         Q: np.ndarray,
         energy: np.ndarray,
-        Q0: Union[float, None] = None,
+        Q0: float | None = None,
         ax=None,
-        q: Union[np.ndarray, None] = None
+        q: np.ndarray | None = None
 ) -> float:
     """Calculate the harmonic phonon frequency for the given PES.
 
@@ -218,7 +217,7 @@ def get_barrier_harmonic(
         dE: float,
         wi: float,
         wf: float
-) -> Union[float, None]:
+) -> float | None:
     """Calculate the barrier height within the Harmonic approximation.
 
     Parameters

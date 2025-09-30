@@ -1,7 +1,6 @@
 # pylint: disable=C0114,C0115,C0116
 
 import unittest
-from typing import Union
 
 import numpy as np
 from numpy.polynomial.laguerre import laggauss
@@ -20,12 +19,12 @@ from nonrad.tests import TEST_FILES, FakeFig
 
 
 def _old_sommerfeld_parameter(
-        T: Union[float, np.ndarray],
+        T: float | np.ndarray,
         Z: int,
         m_eff: float,
         eps0: float,
         method: str = 'Integrate'
-) -> Union[float, np.ndarray]:
+) -> float | np.ndarray:
     if Z == 0:
         return 1.
 
@@ -40,7 +39,7 @@ def _old_sommerfeld_parameter(
 
         t = 0.
         x, w = laggauss(64)
-        for ix, iw in zip(x, w):
+        for ix, iw in zip(x, w, strict=False):
             t += iw * np.sqrt(ix) * s_k(np.sqrt(2 * m * kT * ix) / const.hbar)
         return t / np.sum(w * np.sqrt(x))
 

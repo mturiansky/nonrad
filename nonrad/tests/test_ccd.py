@@ -62,10 +62,10 @@ class CCDTest(unittest.TestCase):
                                    np.linspace(-0.5, 0.5, 100),
                                    remove_zero=False)
         Q = 1.68587 * np.linspace(-0.5, 0.5, 100)
-        for s, q in zip(gs, Q):
+        for s, q in zip(gs, Q, strict=False):
             tq = get_Q_from_struct(self.gnd_real, self.exd_real, s)
             self.assertAlmostEqual(tq, q, places=4)
-        for s, q in zip(es, Q + 1.68587):
+        for s, q in zip(es, Q + 1.68587, strict=False):
             tq = get_Q_from_struct(self.gnd_real, self.exd_real, s)
             self.assertAlmostEqual(tq, q, places=4)
 
@@ -89,7 +89,7 @@ class CCDTest(unittest.TestCase):
     def test_get_omega_from_PES(self):
         q = np.linspace(-0.5, 0.5, 20)
         for om, q0 in zip(np.linspace(0.01, 0.1, 10),
-                          np.linspace(0.1, 3., 10)):
+                          np.linspace(0.1, 3., 10), strict=False):
             omega = (om / HBAR)**2 * ANGS2M**2 * AMU2KG / EV2J
             en = 0.5 * omega * (q - q0)**2
             with warnings.catch_warnings():
