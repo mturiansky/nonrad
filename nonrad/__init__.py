@@ -11,7 +11,7 @@ import importlib.metadata
 
 from nonrad.nonrad import get_C
 
-__all__ = ['get_C']
-__author__ = 'Mark E. Turiansky'
-__email__ = 'mturiansky@physics.ucsb.edu'
-__version__ = importlib.metadata.version('nonrad')
+__all__ = ["get_C"]
+__author__ = "Mark E. Turiansky"
+__email__ = "mturiansky@physics.ucsb.edu"
+__version__ = importlib.metadata.version("nonrad")

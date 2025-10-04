@@ -8,12 +8,18 @@ preparing input for nonrad.
 """
 
 
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Union
+
 import numpy as np
 from pymatgen.core import Structure
 from pymatgen.io.vasp.outputs import Vasprun
 from scipy.optimize import curve_fit
 
 from nonrad.constants import AMU2KG, ANGS2M, EV2J, HBAR
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def get_cc_structures(
@@ -130,7 +136,7 @@ def get_Q_from_struct(
 def get_PES_from_vaspruns(
         ground: Structure,
         excited: Structure,
-        vasprun_paths: list[str],
+        vasprun_paths: Sequence[Union[str, "Path"]],
         tol: float = 0.001
 ) -> tuple[np.ndarray, np.ndarray]:
     """Extract the potential energy surface (PES) from vasprun.xml files.

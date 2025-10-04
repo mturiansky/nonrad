@@ -32,7 +32,7 @@ except ModuleNotFoundError:
             return func
         return _njit
 
-    def herm_vec(x: float, n: int) -> float:
+    def herm_vec(x: float, n: int):
         """Wrap hermval function."""
         return hermval(x, [0.]*n + [1.])
 
