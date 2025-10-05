@@ -11,6 +11,7 @@ from pymatgen.core import Structure
 from ruamel.yaml import YAML
 
 from nonrad.ccd import get_cc_structures, get_dQ, get_omega_from_PES, get_PES_from_vaspruns
+from nonrad.elphon import get_Wif_from_WSWQ
 
 
 def _check_vasp_dir(path: Path, check_run: bool = False) -> None:
@@ -28,9 +29,9 @@ def _check_vasp_dir(path: Path, check_run: bool = False) -> None:
                 raise ValueError(f"VASP output file {path / fname} is missing")
 
 
-def _copy_vasp(from_path: Path, to_path: Path, no_relax: bool = False) -> None:
+def _copy_vasp(from_path: Path, to_path: Path, no_relax: bool = False, elph: bool = False) -> None:
     """Copy VASP input files to a new directory."""
-    for fname in ("KPOINTS", "POTCAR") + (() if no_relax else ("INCAR",)):
+    for fname in ("KPOINTS", "POTCAR") + (() if no_relax or elph else ("INCAR",)):
         shutil.copyfile(from_path / fname, to_path / fname)
 
     if no_relax:
@@ -41,6 +42,17 @@ def _copy_vasp(from_path: Path, to_path: Path, no_relax: bool = False) -> None:
                         break
                 else:
                     fout.write(line)
+    elif elph:
+        (to_path / "WAVECAR").symlink_to(from_path / "WAVECAR")
+
+        with open(from_path / "INCAR") as fin, open(to_path / "INCAR") as fout:
+            for line in fin:
+                # TODO: decide on appropriate tags here
+                for tag in ("EDIFF", "ENCUT", "ISPIN", "PREC"):
+                    if tag in line:
+                        fout.write(line)
+                        break
+            fout.write("\nALGO = None\nNELM = 1\nLWSWQ = True\n")
 
 
 def generate_ccd(
@@ -74,15 +86,31 @@ def generate_ccd(
             struct.to(filename=(working_dir / "POSCAR"), fmt="poscar")
 
 
-def setup_elph() -> None:
+def setup_elph(
+    ground_path: Path,
+    excited_path: Path,
+    ccd_path: Path,
+    use_excited: bool = False,
+) -> None:
     """TODO."""
+    _check_vasp_dir(ground_path, check_run=True)
+    _check_vasp_dir(excited_path, check_run=True)
+
+    for working_dir in (ccd_path / ("excited" if use_excited else "ground")).glob("*"):
+        (wswq_dir := working_dir / "wswq").mkdir()
+        (wswq_dir / "WAVECAR.qqq").symlink_to(working_dir / "WAVECAR")
+        _copy_vasp(excited_path if use_excited else ground_path, wswq_dir, elph=True)
 
 
-def process_ccd(
+def process(
     ground_path: Path,
     excited_path: Path,
     ccd_path: Path,
     save_plot: Path | None = None,
+    wif_defect: int | None = None,
+    wif_bulk: list[int] | None = None,
+    wif_spin: int = 0,
+    wif_kpt: int = 1,
 ) -> None:
     """TODO."""
     _check_vasp_dir(ground_path, check_run=True)
@@ -115,7 +143,23 @@ def process_ccd(
         ax.set_xlabel(r"$Q$ [amu$^{1/2}$ ${\rm \AA}$]")
         plt.savefig(save_plot)
 
-    Wif = 0.0
+    if wif_defect is not None and wif_bulk is not None:
+        wswq_paths = list(ccd_path.glob("ground/*/wswq/WSWQ"))
+        if len(wswq_paths) == 0:
+            wswq_paths = list(ccd_path.glob("excited/*/wswq/WSWQ"))
+
+            if len(wswq_paths) == 0:
+                raise RuntimeError("expected wswq files, but couldn't find any")
+
+            Wifs = get_Wif_from_WSWQ(
+                wswq_paths, excited_path / "vasprun.xml", wif_defect, wif_bulk, wif_spin, wif_kpt
+            )
+        else:
+            Wifs = get_Wif_from_WSWQ(
+                wswq_paths, ground_path / "vasprun.xml", wif_defect, wif_bulk, wif_spin, wif_kpt
+            )
+
+    Wif = np.sqrt(np.mean([wif[1] ** 2 for wif in Wifs]))
     with open("ccd.yaml", "w") as f:
         yaml = YAML()
         yaml.default_flow_style = False

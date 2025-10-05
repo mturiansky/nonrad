@@ -9,12 +9,16 @@ strength using different first-principles codes.
 
 import re
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 from monty.io import zopen
 from pymatgen.electronic_structure.core import Spin
 from pymatgen.io.vasp.outputs import BSVasprun, Wavecar
 from pymatgen.io.wannier90 import Unk
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _compute_matel(psi0: np.ndarray, psi1: np.ndarray) -> float:
@@ -39,7 +43,7 @@ def _compute_matel(psi0: np.ndarray, psi1: np.ndarray) -> float:
 
 def get_Wif_from_wavecars(
     wavecars: list,
-    init_wavecar_path: str,
+    init_wavecar_path: str | Path,
     def_index: int,
     bulk_index: np.ndarray | Sequence[int],
     spin: int = 0,
@@ -137,7 +141,7 @@ def get_Wif_from_wavecars(
 
 def get_Wif_from_UNK(
     unks: list,
-    init_unk_path: str,
+    init_unk_path: str | Path,
     def_index: int,
     bulk_index: np.ndarray | Sequence[int],
     eigs: Sequence[float],
@@ -211,7 +215,7 @@ def get_Wif_from_UNK(
     ]
 
 
-def _read_WSWQ(fname: str) -> dict:
+def _read_WSWQ(fname: str | Path) -> dict:
     """Read the WSWQ file from VASP.
 
     Parameters
@@ -248,7 +252,7 @@ def _read_WSWQ(fname: str) -> dict:
 
 def get_Wif_from_WSWQ(
     wswqs: list,
-    initial_vasprun: str,
+    initial_vasprun: str | Path,
     def_index: int,
     bulk_index: np.ndarray | Sequence[int],
     spin: int = 0,
