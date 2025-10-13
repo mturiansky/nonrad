@@ -9,7 +9,7 @@ strength using different first-principles codes.
 
 import re
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 from monty.io import zopen
@@ -43,7 +43,7 @@ def _compute_matel(psi0: np.ndarray, psi1: np.ndarray) -> float:
 
 def get_Wif_from_wavecars(
     wavecars: list,
-    init_wavecar_path: str | Path,
+    init_wavecar_path: Union[str, "Path"],
     def_index: int,
     bulk_index: np.ndarray | Sequence[int],
     spin: int = 0,
@@ -95,6 +95,7 @@ def get_Wif_from_wavecars(
     else:
         psi_i = initial_wavecar.coeffs[kpoint - 1][def_index - 1]
 
+    deig: np.ndarray
     Nw, Nbi = (len(wavecars), len(bulk_index))
     Q, matels, deig = (np.zeros(Nw + 1), np.zeros((Nbi, Nw + 1)), np.zeros(Nbi))
 
@@ -141,7 +142,7 @@ def get_Wif_from_wavecars(
 
 def get_Wif_from_UNK(
     unks: list,
-    init_unk_path: str | Path,
+    init_unk_path: Union[str, "Path"],
     def_index: int,
     bulk_index: np.ndarray | Sequence[int],
     eigs: Sequence[float],
@@ -182,6 +183,7 @@ def get_Wif_from_UNK(
     initial_unk = Unk.from_file(init_unk_path)
     psi_i = initial_unk.data[def_index - 1].flatten()
 
+    deig: np.ndarray
     Nu, Nbi = (len(unks), len(bulk_index))
     Q, matels, deig = (np.zeros(Nu + 1), np.zeros((Nbi, Nu + 1)), np.zeros(Nbi))
 
@@ -215,7 +217,7 @@ def get_Wif_from_UNK(
     ]
 
 
-def _read_WSWQ(fname: str | Path) -> dict:
+def _read_WSWQ(fname: Union[str, "Path"]) -> dict:
     """Read the WSWQ file from VASP.
 
     Parameters
@@ -252,7 +254,7 @@ def _read_WSWQ(fname: str | Path) -> dict:
 
 def get_Wif_from_WSWQ(
     wswqs: list,
-    initial_vasprun: str | Path,
+    initial_vasprun: Union[str, "Path"],
     def_index: int,
     bulk_index: np.ndarray | Sequence[int],
     spin: int = 0,
@@ -291,12 +293,17 @@ def get_Wif_from_WSWQ(
     """
     bulk_index = np.array(bulk_index, ndmin=1)
 
+    deig: np.ndarray
     Nw, Nbi = (len(wswqs), len(bulk_index))
     Q, matels, deig = (np.zeros(Nw + 1), np.zeros((Nbi, Nw + 1)), np.zeros(Nbi))
 
     # first compute the eigenvalue differences
     bvr = BSVasprun(initial_vasprun)
     sp = Spin.up if spin == 0 else Spin.down
+
+    if bvr.eigenvalues is None:
+        raise ValueError("eigenvalues were not properly read from vasprun.xml")
+
     def_eig = bvr.eigenvalues[sp][kpoint - 1][def_index - 1][0]
     for i, bi in enumerate(bulk_index):
         deig[i] = bvr.eigenvalues[sp][kpoint - 1][bi - 1][0] - def_eig
