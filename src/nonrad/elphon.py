@@ -9,13 +9,16 @@ strength using different first-principles codes.
 
 import re
 from collections.abc import Sequence
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 from monty.io import zopen
 from pymatgen.electronic_structure.core import Spin
 from pymatgen.io.vasp.outputs import BSVasprun, Wavecar
 from pymatgen.io.wannier90 import Unk
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _compute_matel(psi0: np.ndarray, psi1: np.ndarray) -> float:
@@ -39,13 +42,13 @@ def _compute_matel(psi0: np.ndarray, psi1: np.ndarray) -> float:
 
 
 def get_Wif_from_wavecars(
-        wavecars: list,
-        init_wavecar_path: str,
-        def_index: int,
-        bulk_index: Union[np.ndarray, Sequence[int]],
-        spin: int = 0,
-        kpoint: int = 1,
-        fig=None
+    wavecars: list,
+    init_wavecar_path: Union[str, "Path"],
+    def_index: int,
+    bulk_index: np.ndarray | Sequence[int],
+    spin: int = 0,
+    kpoint: int = 1,
+    fig=None,
 ) -> list:
     """Compute the electron-phonon matrix element using the WAVECARs.
 
@@ -88,23 +91,28 @@ def get_Wif_from_wavecars(
     bulk_index = np.array(bulk_index, ndmin=1)
     initial_wavecar = Wavecar(init_wavecar_path)
     if initial_wavecar.spin == 2:
-        psi_i = initial_wavecar.coeffs[spin][kpoint-1][def_index-1]
+        psi_i = initial_wavecar.coeffs[spin][kpoint - 1][def_index - 1]
     else:
-        psi_i = initial_wavecar.coeffs[kpoint-1][def_index-1]
+        psi_i = initial_wavecar.coeffs[kpoint - 1][def_index - 1]
 
+    deig: np.ndarray
     Nw, Nbi = (len(wavecars), len(bulk_index))
-    Q, matels, deig = (np.zeros(Nw+1), np.zeros((Nbi, Nw+1)), np.zeros(Nbi))
+    Q, matels, deig = (np.zeros(Nw + 1), np.zeros((Nbi, Nw + 1)), np.zeros(Nbi))
 
     # first compute the Q = 0 values and eigenvalue differences
     for i, bi in enumerate(bulk_index):
         if initial_wavecar.spin == 2:
-            psi_f = initial_wavecar.coeffs[spin][kpoint-1][bi-1]
-            deig[i] = initial_wavecar.band_energy[spin][kpoint-1][bi-1][0] - \
-                initial_wavecar.band_energy[spin][kpoint-1][def_index-1][0]
+            psi_f = initial_wavecar.coeffs[spin][kpoint - 1][bi - 1]
+            deig[i] = (
+                initial_wavecar.band_energy[spin][kpoint - 1][bi - 1][0]
+                - initial_wavecar.band_energy[spin][kpoint - 1][def_index - 1][0]
+            )
         else:
-            psi_f = initial_wavecar.coeffs[kpoint-1][bi-1]
-            deig[i] = initial_wavecar.band_energy[kpoint-1][bi-1][0] - \
-                initial_wavecar.band_energy[kpoint-1][def_index-1][0]
+            psi_f = initial_wavecar.coeffs[kpoint - 1][bi - 1]
+            deig[i] = (
+                initial_wavecar.band_energy[kpoint - 1][bi - 1][0]
+                - initial_wavecar.band_energy[kpoint - 1][def_index - 1][0]
+            )
         matels[i, Nw] = _compute_matel(psi_i, psi_f)
     deig = np.abs(deig)
 
@@ -114,29 +122,31 @@ def get_Wif_from_wavecars(
         final_wavecar = Wavecar(fname)
         for j, bi in enumerate(bulk_index):
             if final_wavecar.spin == 2:
-                psi_f = final_wavecar.coeffs[spin][kpoint-1][bi-1]
+                psi_f = final_wavecar.coeffs[spin][kpoint - 1][bi - 1]
             else:
-                psi_f = final_wavecar.coeffs[kpoint-1][bi-1]
+                psi_f = final_wavecar.coeffs[kpoint - 1][bi - 1]
             matels[j, i] = _compute_matel(psi_i, psi_f)
 
     if fig is not None:
         ax = fig.subplots(1, Nbi)
         ax = np.array(ax, ndmin=1)
-        for a, i in zip(ax, range(Nbi)):
+        for a, i in zip(ax, range(Nbi), strict=False):
             a.scatter(Q, matels[i, :])
-            a.set_title(f'{bulk_index[i]}')
+            a.set_title(f"{bulk_index[i]}")
 
-    return [(bi, deig[i] * np.mean(np.abs(np.gradient(matels[i, :], Q))))
-            for i, bi in enumerate(bulk_index)]
+    return [
+        (bi, deig[i] * np.mean(np.abs(np.gradient(matels[i, :], Q))))
+        for i, bi in enumerate(bulk_index)
+    ]
 
 
 def get_Wif_from_UNK(
-        unks: list,
-        init_unk_path: str,
-        def_index: int,
-        bulk_index: Union[np.ndarray, Sequence[int]],
-        eigs: Sequence[float],
-        fig=None
+    unks: list,
+    init_unk_path: Union[str, "Path"],
+    def_index: int,
+    bulk_index: np.ndarray | Sequence[int],
+    eigs: Sequence[float],
+    fig=None,
 ) -> list:
     """Compute the electron-phonon matrix element using UNK files.
 
@@ -171,15 +181,16 @@ def get_Wif_from_UNK(
     """
     bulk_index = np.array(bulk_index, ndmin=1)
     initial_unk = Unk.from_file(init_unk_path)
-    psi_i = initial_unk.data[def_index-1].flatten()
+    psi_i = initial_unk.data[def_index - 1].flatten()
 
+    deig: np.ndarray
     Nu, Nbi = (len(unks), len(bulk_index))
-    Q, matels, deig = (np.zeros(Nu+1), np.zeros((Nbi, Nu+1)), np.zeros(Nbi))
+    Q, matels, deig = (np.zeros(Nu + 1), np.zeros((Nbi, Nu + 1)), np.zeros(Nbi))
 
     # first compute the Q = 0 values and eigenvalue differences
     for i, bi in enumerate(bulk_index):
-        psi_f = initial_unk.data[bi-1].flatten()
-        deig[i] = eigs[bi-1] - eigs[def_index-1]
+        psi_f = initial_unk.data[bi - 1].flatten()
+        deig[i] = eigs[bi - 1] - eigs[def_index - 1]
         matels[i, Nu] = _compute_matel(psi_i, psi_f)
     deig = np.abs(deig)
 
@@ -188,23 +199,23 @@ def get_Wif_from_UNK(
         Q[i] = q
         final_unk = Unk.from_file(fname)
         for j, bi in enumerate(bulk_index):
-            psi_f = final_unk.data[bi-1].flatten()
+            psi_f = final_unk.data[bi - 1].flatten()
             matels[j, i] = _compute_matel(psi_i, psi_f)
-
-    print(matels)
 
     if fig is not None:
         ax = fig.subplots(1, Nbi)
         ax = np.array(ax, ndmin=1)
-        for a, i in zip(ax, range(Nbi)):
+        for a, i in zip(ax, range(Nbi), strict=False):
             a.scatter(Q, matels[i, :])
-            a.set_title(f'{bulk_index[i]}')
+            a.set_title(f"{bulk_index[i]}")
 
-    return [(bi, deig[i] * np.mean(np.abs(np.gradient(matels[i, :], Q))))
-            for i, bi in enumerate(bulk_index)]
+    return [
+        (bi, deig[i] * np.mean(np.abs(np.gradient(matels[i, :], Q))))
+        for i, bi in enumerate(bulk_index)
+    ]
 
 
-def _read_WSWQ(fname: str) -> dict:
+def _read_WSWQ(fname: Union[str, "Path"]) -> dict:
     """Read the WSWQ file from VASP.
 
     Parameters
@@ -219,34 +230,34 @@ def _read_WSWQ(fname: str) -> dict:
         indices and maps it to a complex number
     """
     # whoa, this is horrific
-    wswq: dict[Union[tuple[int, int], None], dict[tuple[int, int], complex]] = {}
+    wswq: dict[tuple[int, int] | None, dict[tuple[int, int], complex]] = {}
     current = None
-    with zopen(fname, 'r') as f:
+    with zopen(fname, "rt") as f:
         for line in f:
-            spin_kpoint = \
-                re.search(r'\s*spin=(\d+), kpoint=\s*(\d+)', str(line))
-            data = \
-                re.search(r'i=\s*(\d+), '
-                          r'j=\s*(\d+)\s*:\s*([0-9\-.]+)\s+([0-9\-.]+)',
-                          str(line))
+            spin_kpoint = re.search(r"\s*spin=(\d+), kpoint=\s*(\d+)", str(line))
+            data = re.search(
+                r"i=\s*(\d+), "
+                r"j=\s*(\d+)\s*:\s*([0-9\-.]+)\s+([0-9\-.]+)",
+                str(line),
+            )
             if spin_kpoint:
-                current = \
-                    (int(spin_kpoint.group(1)), int(spin_kpoint.group(2)))
+                current = (int(spin_kpoint.group(1)), int(spin_kpoint.group(2)))
                 wswq[current] = {}
             elif data:
-                wswq[current][(int(data.group(1)), int(data.group(2)))] = \
-                    complex(float(data.group(3)), float(data.group(4)))
+                wswq[current][(int(data.group(1)), int(data.group(2)))] = complex(
+                    float(data.group(3)), float(data.group(4))
+                )
     return wswq
 
 
 def get_Wif_from_WSWQ(
-        wswqs: list,
-        initial_vasprun: str,
-        def_index: int,
-        bulk_index: Union[np.ndarray, Sequence[int]],
-        spin: int = 0,
-        kpoint: int = 1,
-        fig=None
+    wswqs: list,
+    initial_vasprun: Union[str, "Path"],
+    def_index: int,
+    bulk_index: np.ndarray | Sequence[int],
+    spin: int = 0,
+    kpoint: int = 1,
+    fig=None,
 ) -> list:
     """Compute the electron-phonon matrix element using the WSWQ files.
 
@@ -280,15 +291,20 @@ def get_Wif_from_WSWQ(
     """
     bulk_index = np.array(bulk_index, ndmin=1)
 
+    deig: np.ndarray
     Nw, Nbi = (len(wswqs), len(bulk_index))
-    Q, matels, deig = (np.zeros(Nw+1), np.zeros((Nbi, Nw+1)), np.zeros(Nbi))
+    Q, matels, deig = (np.zeros(Nw + 1), np.zeros((Nbi, Nw + 1)), np.zeros(Nbi))
 
     # first compute the eigenvalue differences
     bvr = BSVasprun(initial_vasprun)
     sp = Spin.up if spin == 0 else Spin.down
-    def_eig = bvr.eigenvalues[sp][kpoint-1][def_index-1][0]
+
+    if bvr.eigenvalues is None:
+        raise ValueError("eigenvalues were not properly read from vasprun.xml")
+
+    def_eig = bvr.eigenvalues[sp][kpoint - 1][def_index - 1][0]
     for i, bi in enumerate(bulk_index):
-        deig[i] = bvr.eigenvalues[sp][kpoint-1][bi-1][0] - def_eig
+        deig[i] = bvr.eigenvalues[sp][kpoint - 1][bi - 1][0] - def_eig
     deig = np.abs(deig)
 
     # now compute for each Q
@@ -296,17 +312,15 @@ def get_Wif_from_WSWQ(
         Q[i] = q
         wswq = _read_WSWQ(fname)
         for j, bi in enumerate(bulk_index):
-            matels[j, i] = np.sign(q) * \
-                np.abs(wswq[(spin+1, kpoint)][(bi, def_index)])
+            matels[j, i] = np.sign(q) * np.abs(wswq[(spin + 1, kpoint)][(bi, def_index)])
 
     if fig is not None:
         ax = fig.subplots(1, Nbi)
         ax = np.array(ax, ndmin=1)
-        for a, i in zip(ax, range(Nbi)):
+        for a, i in zip(ax, range(Nbi), strict=False):
             tq = np.linspace(np.min(Q), np.max(Q), 100)
             a.scatter(Q, matels[i, :])
             a.plot(tq, np.polyval(np.polyfit(Q, matels[i, :], 1), tq))
-            a.set_title(f'{bulk_index[i]}')
+            a.set_title(f"{bulk_index[i]}")
 
-    return [(bi, deig[i] * np.polyfit(Q, matels[i, :], 1)[0])
-            for i, bi in enumerate(bulk_index)]
+    return [(bi, deig[i] * np.polyfit(Q, matels[i, :], 1)[0]) for i, bi in enumerate(bulk_index)]

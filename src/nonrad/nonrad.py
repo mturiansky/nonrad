@@ -8,7 +8,6 @@ capture coefficient from first-principles.
 """
 
 import warnings
-from typing import Union
 
 import numpy as np
 from scipy import constants as const
@@ -33,7 +32,7 @@ except ModuleNotFoundError:
             return func
         return _njit
 
-    def herm_vec(x: float, n: int) -> float:
+    def herm_vec(x: float, n: int):
         """Wrap hermval function."""
         return hermval(x, [0.]*n + [1.])
 
@@ -123,7 +122,7 @@ def overlap_NM(
     wfn2 = (factor*w2/np.pi)**(0.25)*(1./np.sqrt(2.**n2*fact(n2))) * \
         Hn2Q*np.exp(-(factor*w2)*QQ**2/2.)
 
-    return np.trapz(wfn2*wfn1, x=QQ)
+    return np.trapezoid(wfn2*wfn1, x=QQ)
 
 
 @njit(cache=True)
@@ -232,11 +231,11 @@ def get_C(
         Wif: float,
         volume: float,
         g: int = 1,
-        T: Union[float, np.ndarray] = 300.,
-        sigma: Union[str, float] = 'pchip',
+        T: float | np.ndarray = 300.,
+        sigma: str | float = 'pchip',
         occ_tol: float = 1e-5,
         overlap_method: str = 'HermiteGauss'
-) -> Union[float, np.ndarray]:
+) -> float | np.ndarray:
     """Compute the nonradiative capture coefficient.
 
     This function computes the nonradiative capture coefficient following the
@@ -339,7 +338,7 @@ def get_C(
             else:
                 f = PchipInterpolator(E, matels, extrapolate=False)
             R = R + weight_m * (f(dE) * np.sum(matels)
-                                / np.trapz(np.nan_to_num(f(t)), x=t))
+                                / np.trapezoid(np.nan_to_num(f(t)), x=t))
         else:
             # gaussian smearing with given sigma to replace delta functions
             for n in np.arange(Nf):

@@ -1,0 +1,106 @@
+# pylint: disable=C0114,C0115,C0116
+
+import glob
+import unittest
+import warnings
+
+import numpy as np
+from pymatgen.core import Lattice, Structure
+
+from nonrad.ccd import (
+    get_cc_structures,
+    get_dQ,
+    get_omega_from_PES,
+    get_PES_from_vaspruns,
+    get_Q_from_struct,
+)
+from nonrad.nonrad import AMU2KG, ANGS2M, EV2J, HBAR
+
+from . import TEST_FILES, FakeAx
+
+
+class CCDTest(unittest.TestCase):
+    def setUp(self):
+        self.gnd_real = Structure.from_file(TEST_FILES / "POSCAR.C0.gz")
+        self.exd_real = Structure.from_file(TEST_FILES / "POSCAR.C-.gz")
+        self.gnd_test = Structure(Lattice.cubic(1.0), ["H"], [[0.0, 0.0, 0.0]])
+        self.exd_test = Structure(Lattice.cubic(1.0), ["H"], [[0.5, 0.5, 0.5]])
+        self.sct_test = Structure(Lattice.cubic(1.0), ["H"], [[0.25, 0.25, 0.25]])
+        self.vrs = [TEST_FILES / "vasprun.xml.0.gz"] + glob.glob(
+            str(TEST_FILES / "lower" / "*" / "vasprun.xml.gz")
+        )
+
+    def test_get_cc_structures(self):
+        gs, es = get_cc_structures(self.gnd_real, self.exd_real, [0.0])
+        assert gs == []
+        assert es == []
+        gs, es = get_cc_structures(self.gnd_test, self.exd_test, [0.0], remove_zero=False)
+        assert self.gnd_test == gs[0]
+        assert self.exd_test == es[0]
+        gs, es = get_cc_structures(self.gnd_test, self.exd_test, [0.5])
+        assert np.allclose(gs[0][0].coords, [0.25, 0.25, 0.25])
+
+    def test_get_dQ(self):
+        assert get_dQ(self.gnd_test, self.gnd_test) == 0.0
+        assert get_dQ(self.exd_test, self.exd_test) == 0.0
+        assert get_dQ(self.gnd_real, self.gnd_real) == 0.0
+        assert get_dQ(self.exd_real, self.exd_real) == 0.0
+        assert round(abs(get_dQ(self.gnd_test, self.exd_test) - 0.86945), 4) == 0
+        assert round(abs(get_dQ(self.gnd_real, self.exd_real) - 1.68587), 4) == 0
+
+    def test_get_Q_from_struct(self):
+        q = get_Q_from_struct(self.gnd_test, self.exd_test, self.sct_test)
+        assert round(abs(q - 0.5 * 0.86945), 4) == 0
+        q = get_Q_from_struct(self.gnd_real, self.exd_real, str(TEST_FILES / "POSCAR.C0.gz"))
+        assert round(abs(q - 0.0), 4) == 0
+        gs, es = get_cc_structures(
+            self.gnd_real, self.exd_real, np.linspace(-0.5, 0.5, 100), remove_zero=False
+        )
+        Q = 1.68587 * np.linspace(-0.5, 0.5, 100)
+        for s, q in zip(gs, Q, strict=False):
+            tq = get_Q_from_struct(self.gnd_real, self.exd_real, s)
+            assert round(abs(tq - q), 4) == 0
+        for s, q in zip(es, Q + 1.68587, strict=False):
+            tq = get_Q_from_struct(self.gnd_real, self.exd_real, s)
+            assert round(abs(tq - q), 4) == 0
+
+        # test when one of the coordinates stays the same
+        sg = Structure(np.eye(3), ["H"], [[0.0, 0.0, 0.0]])
+        sq = Structure(np.eye(3), ["H"], [[0.1, 0.0, 0.1]])
+        se = Structure(np.eye(3), ["H"], [[0.2, 0.0, 0.2]])
+        dQ = get_dQ(sg, se)
+        assert round(abs(get_Q_from_struct(sg, se, sq) / dQ - 0.5), 7) == 0
+
+    def test_get_PES_from_vaspruns(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            q, en = get_PES_from_vaspruns(self.gnd_real, self.exd_real, self.vrs)
+        assert len(q) == 2
+        assert len(en) == 2
+        assert np.min(en) == 0.0
+        assert en[0] == 0.0
+
+    def test_get_omega_from_PES(self):
+        q = np.linspace(-0.5, 0.5, 20)
+        for om, q0 in zip(np.linspace(0.01, 0.1, 10), np.linspace(0.1, 3.0, 10), strict=False):
+            omega = (om / HBAR) ** 2 * ANGS2M**2 * AMU2KG / EV2J
+            en = 0.5 * omega * (q - q0) ** 2
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                assert round(abs(get_omega_from_PES(q, en) - om), 7) == 0
+                assert round(abs(get_omega_from_PES(q, en, Q0=q0) - om), 7) == 0
+        om, q0 = (0.1, 3.0)
+        assert round(abs(get_omega_from_PES(q, en, Q0=q0, ax=FakeAx()) - om), 7) == 0
+        assert (
+            round(
+                abs(get_omega_from_PES(q, en, Q0=q0, ax=FakeAx(), q=np.linspace(-1, 1, 100)) - om),
+                7,
+            )
+            == 0
+        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            q, en = get_PES_from_vaspruns(self.gnd_real, self.exd_real, self.vrs)
+            q = np.append(q, [-1 * q[-1]])
+            en = np.append(en, [en[-1]])
+            assert round(abs(get_omega_from_PES(q, en) - 0.0335), 3) == 0

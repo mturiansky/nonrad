@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-TEST_FILES = Path(__file__).absolute().parent / '..' / '..' / 'test_files'
+TEST_FILES = Path(__file__).absolute().parent / "files"
 
 
 class FakeAx:

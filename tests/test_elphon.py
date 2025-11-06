@@ -1,0 +1,139 @@
+# pylint: disable=C0114,C0115,C0116
+
+import glob
+import unittest
+import warnings
+from itertools import product
+
+import numpy as np
+from pymatgen.core import Lattice, Structure
+
+from nonrad.ccd import get_Q_from_struct
+from nonrad.elphon import (
+    _compute_matel,
+    _read_WSWQ,
+    get_Wif_from_UNK,
+    get_Wif_from_wavecars,
+    get_Wif_from_WSWQ,
+)
+
+from . import TEST_FILES, FakeFig
+
+
+class ElphonTest(unittest.TestCase):
+    def setUp(self):
+        self.gnd_real = Structure.from_file(TEST_FILES / "POSCAR.C0.gz")
+        self.exd_real = Structure.from_file(TEST_FILES / "POSCAR.C-.gz")
+        self.gnd_test = Structure(Lattice.cubic(1.0), ["H"], [[0.0, 0.0, 0.0]])
+        self.exd_test = Structure(Lattice.cubic(1.0), ["H"], [[0.5, 0.5, 0.5]])
+        self.sct_test = Structure(Lattice.cubic(1.0), ["H"], [[0.25, 0.25, 0.25]])
+        self.vrs = [TEST_FILES / "vasprun.xml.0.gz"] + glob.glob(
+            str(TEST_FILES / "lower" / "*" / "vasprun.xml.gz")
+        )
+
+    def test__compute_matel(self):
+        N = 10
+        rng = np.random.default_rng()
+        H = rng.random(size=(N, N)).astype(complex) + 1j * rng.random(size=(N, N)).astype(complex)
+        H = H + np.conj(H).T
+        _, ev = np.linalg.eigh(H)
+        for i, j in product(range(N), range(N)):
+            if i == j:
+                assert round(abs(_compute_matel(ev[:, i], ev[:, j]) - 1.0), 7) == 0
+            else:
+                assert round(abs(_compute_matel(ev[:, i], ev[:, j]) - 0.0), 7) == 0
+
+    @unittest.skip("WAVECARs too large to share")
+    def test_get_Wif_from_wavecars(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            wcrs = [
+                (Structure.from_file(d + "/vasprun.xml.gz"), d + "/WAVECAR")
+                for d in glob.glob(str(TEST_FILES / "lower" / "*"))
+            ]
+            wcrs = list(
+                map(lambda x: (get_Q_from_struct(self.gnd_real, self.exd_real, x[0]), x[1]), wcrs)
+            )
+        assert (
+            round(
+                abs(
+                    get_Wif_from_wavecars(
+                        wcrs, str(TEST_FILES / "WAVECAR.C0"), 192, [189], spin=1
+                    )[0][1]
+                    - 0.087
+                ),
+                2,
+            )
+            == 0
+        )
+        assert (
+            round(
+                abs(
+                    get_Wif_from_wavecars(
+                        wcrs, str(TEST_FILES / "WAVECAR.C0"), 192, [189], spin=1, fig=FakeFig()
+                    )[0][1]
+                    - 0.087
+                ),
+                2,
+            )
+            == 0
+        )
+
+    def test_get_Wif_from_UNK(self):
+        Wif = get_Wif_from_UNK(
+            unks=[(1.0, str(TEST_FILES / "UNK.1"))],
+            init_unk_path=str(TEST_FILES / "UNK.0"),
+            def_index=2,
+            bulk_index=[1],
+            eigs=np.array([0.0, 1.0]),
+        )
+        assert Wif[0][0] == 1
+        assert round(abs(Wif[0][1] - 1.0), 7) == 0
+
+    def test__read_WSWQ(self):
+        wswq = _read_WSWQ(str(TEST_FILES / "lower" / "10" / "WSWQ.gz"))
+        assert len(wswq) > 0
+        assert len(wswq[(1, 1)]) > 0
+        assert np.abs(wswq[(1, 1)][(1, 1)]) > 0
+        assert isinstance(wswq, dict)
+        assert isinstance(wswq[(1, 1)], dict)
+
+    def test_get_Wif_from_WSWQ(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            wswqs = [
+                (Structure.from_file(d + "/vasprun.xml.gz"), d + "/WSWQ.gz")
+                for d in glob.glob(str(TEST_FILES / "lower" / "*"))
+            ]
+            wswqs = list(
+                map(lambda x: (get_Q_from_struct(self.gnd_real, self.exd_real, x[0]), x[1]), wswqs)
+            )
+        assert (
+            round(
+                abs(
+                    get_Wif_from_WSWQ(
+                        wswqs, str(TEST_FILES / "vasprun.xml.0.gz"), 192, [189], spin=1
+                    )[0][1]
+                    - 0.094
+                ),
+                2,
+            )
+            == 0
+        )
+        assert (
+            round(
+                abs(
+                    get_Wif_from_WSWQ(
+                        wswqs,
+                        str(TEST_FILES / "vasprun.xml.0.gz"),
+                        192,
+                        [189],
+                        spin=1,
+                        fig=FakeFig(),
+                    )[0][1]
+                    - 0.094
+                ),
+                2,
+            )
+            == 0
+        )
