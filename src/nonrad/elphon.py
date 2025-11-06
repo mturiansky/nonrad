@@ -202,8 +202,6 @@ def get_Wif_from_UNK(
             psi_f = final_unk.data[bi - 1].flatten()
             matels[j, i] = _compute_matel(psi_i, psi_f)
 
-    print(matels)
-
     if fig is not None:
         ax = fig.subplots(1, Nbi)
         ax = np.array(ax, ndmin=1)

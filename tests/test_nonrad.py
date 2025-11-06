@@ -26,12 +26,14 @@ class OverlapTest(unittest.TestCase):
                 assert round(abs(fast_overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) == 0
             else:
                 assert round(abs(fast_overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) == 0
+
         DQ, w1, w2 = (1.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
                 assert round(abs(fast_overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) != 0
             else:
                 assert round(abs(fast_overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) != 0
+
         DQ, w1, w2 = (1.00, 0.15, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
@@ -46,12 +48,14 @@ class OverlapTest(unittest.TestCase):
                 assert round(abs(overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) == 0
             else:
                 assert round(abs(overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) == 0
+
         DQ, w1, w2 = (1.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
                 assert round(abs(overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) != 0
             else:
                 assert round(abs(overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) != 0
+
         DQ, w1, w2 = (1.00, 0.15, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
@@ -66,12 +70,14 @@ class OverlapTest(unittest.TestCase):
                 assert round(abs(analytic_overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) == 0
             else:
                 assert round(abs(analytic_overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) == 0
+
         DQ, w1, w2 = (1.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
                 assert round(abs(analytic_overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) != 0
             else:
                 assert round(abs(analytic_overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) != 0
+
         DQ, w1, w2 = (1.00, 0.15, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
@@ -107,7 +113,7 @@ class GetCTest(unittest.TestCase):
             "T": 300,
             "sigma": "pchip",
             "occ_tol": 1e-5,
-            "overlap_method": "Integrate",
+            "overlap_method": "HermiteGauss",
         }
 
     def test_normal_run(self):
@@ -116,13 +122,22 @@ class GetCTest(unittest.TestCase):
     def test_same_w(self):
         self.args["wf"] = self.args["wi"]
         assert get_C(**self.args) > 0.0
+
         self.args["dQ"] = 0.0
         assert get_C(**self.args) < 1e-20
 
     def test_analytic(self):
         self.args["overlap_method"] = "analytic"
         assert get_C(**self.args) > 0.0
+
         self.args["overlap_method"] = "Analytic"
+        assert get_C(**self.args) > 0.0
+
+    def test_integrate(self):
+        self.args["overlap_method"] = "integrate"
+        assert get_C(**self.args) > 0.0
+
+        self.args["overlap_method"] = "Integrate"
         assert get_C(**self.args) > 0.0
 
     def test_bad_overlap(self):
@@ -168,6 +183,7 @@ class GetCTest(unittest.TestCase):
         assert len(cs) == 100
         for c in cs:
             assert c > 0.0
+
         self.args["T"] = [300]
         with pytest.raises(TypeError):
             get_C(**self.args)
@@ -177,11 +193,15 @@ class GetCTest(unittest.TestCase):
     def test_occ_tol(self):
         self.args["occ_tol"] = 1e-6
         assert get_C(**self.args) > 0.0
+
         self.args["occ_tol"] = 1.0
         self.args["dE"] = 150 * self.args["wf"]
+        self.args["overlap_method"] = "Integrate"
         with pytest.raises(ValueError):
             get_C(**self.args)
+
         self.args["sigma"] = "cubic"
+        self.args["overlap_method"] = "HermiteGauss"
         with pytest.warns(RuntimeWarning):
             get_C(**self.args)
 
