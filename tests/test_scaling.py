@@ -16,7 +16,8 @@ from nonrad.scaling import (
     sommerfeld_parameter,
     thermal_velocity,
 )
-from nonrad.tests import TEST_FILES, FakeFig
+
+from . import TEST_FILES, FakeFig
 
 
 def _old_sommerfeld_parameter(

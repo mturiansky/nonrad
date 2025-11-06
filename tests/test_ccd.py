@@ -15,7 +15,8 @@ from nonrad.ccd import (
     get_Q_from_struct,
 )
 from nonrad.nonrad import AMU2KG, ANGS2M, EV2J, HBAR
-from nonrad.tests import TEST_FILES, FakeAx
+
+from . import TEST_FILES, FakeAx
 
 
 class CCDTest(unittest.TestCase):

@@ -16,7 +16,8 @@ from nonrad.elphon import (
     get_Wif_from_wavecars,
     get_Wif_from_WSWQ,
 )
-from nonrad.tests import TEST_FILES, FakeFig
+
+from . import TEST_FILES, FakeFig
 
 
 class ElphonTest(unittest.TestCase):
