@@ -38,9 +38,9 @@ class ElphonTest(unittest.TestCase):
         _, ev = np.linalg.eigh(H)
         for i, j in product(range(N), range(N)):
             if i == j:
-                self.assertAlmostEqual(_compute_matel(ev[:, i], ev[:, j]), 1.0)
+                assert round(abs(_compute_matel(ev[:, i], ev[:, j]) - 1.0), 7) == 0
             else:
-                self.assertAlmostEqual(_compute_matel(ev[:, i], ev[:, j]), 0.0)
+                assert round(abs(_compute_matel(ev[:, i], ev[:, j]) - 0.0), 7) == 0
 
     @unittest.skip("WAVECARs too large to share")
     def test_get_Wif_from_wavecars(self):
@@ -53,17 +53,29 @@ class ElphonTest(unittest.TestCase):
             wcrs = list(
                 map(lambda x: (get_Q_from_struct(self.gnd_real, self.exd_real, x[0]), x[1]), wcrs)
             )
-        self.assertAlmostEqual(
-            get_Wif_from_wavecars(wcrs, str(TEST_FILES / "WAVECAR.C0"), 192, [189], spin=1)[0][1],
-            0.087,
-            places=2,
+        assert (
+            round(
+                abs(
+                    get_Wif_from_wavecars(
+                        wcrs, str(TEST_FILES / "WAVECAR.C0"), 192, [189], spin=1
+                    )[0][1]
+                    - 0.087
+                ),
+                2,
+            )
+            == 0
         )
-        self.assertAlmostEqual(
-            get_Wif_from_wavecars(
-                wcrs, str(TEST_FILES / "WAVECAR.C0"), 192, [189], spin=1, fig=FakeFig()
-            )[0][1],
-            0.087,
-            places=2,
+        assert (
+            round(
+                abs(
+                    get_Wif_from_wavecars(
+                        wcrs, str(TEST_FILES / "WAVECAR.C0"), 192, [189], spin=1, fig=FakeFig()
+                    )[0][1]
+                    - 0.087
+                ),
+                2,
+            )
+            == 0
         )
 
     def test_get_Wif_from_UNK(self):
@@ -74,16 +86,16 @@ class ElphonTest(unittest.TestCase):
             bulk_index=[1],
             eigs=np.array([0.0, 1.0]),
         )
-        self.assertEqual(Wif[0][0], 1)
-        self.assertAlmostEqual(Wif[0][1], 1.0)
+        assert Wif[0][0] == 1
+        assert round(abs(Wif[0][1] - 1.0), 7) == 0
 
     def test__read_WSWQ(self):
         wswq = _read_WSWQ(str(TEST_FILES / "lower" / "10" / "WSWQ.gz"))
-        self.assertGreater(len(wswq), 0)
-        self.assertGreater(len(wswq[(1, 1)]), 0)
-        self.assertGreater(np.abs(wswq[(1, 1)][(1, 1)]), 0)
-        self.assertEqual(type(wswq), dict)
-        self.assertEqual(type(wswq[(1, 1)]), dict)
+        assert len(wswq) > 0
+        assert len(wswq[(1, 1)]) > 0
+        assert np.abs(wswq[(1, 1)][(1, 1)]) > 0
+        assert isinstance(wswq, dict)
+        assert isinstance(wswq[(1, 1)], dict)
 
     def test_get_Wif_from_WSWQ(self):
         with warnings.catch_warnings():
@@ -95,17 +107,32 @@ class ElphonTest(unittest.TestCase):
             wswqs = list(
                 map(lambda x: (get_Q_from_struct(self.gnd_real, self.exd_real, x[0]), x[1]), wswqs)
             )
-        self.assertAlmostEqual(
-            get_Wif_from_WSWQ(wswqs, str(TEST_FILES / "vasprun.xml.0.gz"), 192, [189], spin=1)[0][
-                1
-            ],
-            0.094,
-            places=2,
+        assert (
+            round(
+                abs(
+                    get_Wif_from_WSWQ(
+                        wswqs, str(TEST_FILES / "vasprun.xml.0.gz"), 192, [189], spin=1
+                    )[0][1]
+                    - 0.094
+                ),
+                2,
+            )
+            == 0
         )
-        self.assertAlmostEqual(
-            get_Wif_from_WSWQ(
-                wswqs, str(TEST_FILES / "vasprun.xml.0.gz"), 192, [189], spin=1, fig=FakeFig()
-            )[0][1],
-            0.094,
-            places=2,
+        assert (
+            round(
+                abs(
+                    get_Wif_from_WSWQ(
+                        wswqs,
+                        str(TEST_FILES / "vasprun.xml.0.gz"),
+                        192,
+                        [189],
+                        spin=1,
+                        fig=FakeFig(),
+                    )[0][1]
+                    - 0.094
+                ),
+                2,
+            )
+            == 0
         )

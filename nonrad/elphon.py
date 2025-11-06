@@ -234,7 +234,7 @@ def _read_WSWQ(fname: Union[str, "Path"]) -> dict:
     # whoa, this is horrific
     wswq: dict[tuple[int, int] | None, dict[tuple[int, int], complex]] = {}
     current = None
-    with zopen(fname, "r") as f:
+    with zopen(fname, "rt") as f:
         for line in f:
             spin_kpoint = re.search(r"\s*spin=(\d+), kpoint=\s*(\d+)", str(line))
             data = re.search(

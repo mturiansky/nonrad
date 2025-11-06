@@ -4,6 +4,7 @@ import unittest
 from itertools import product
 
 import numpy as np
+import pytest
 from numpy.polynomial.hermite import hermval
 from scipy.special import factorial
 
@@ -22,67 +23,71 @@ class OverlapTest(unittest.TestCase):
         DQ, w1, w2 = (0.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
-                self.assertAlmostEqual(fast_overlap_NM(DQ, w1, w2, m, n), 1.0)
+                assert round(abs(fast_overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) == 0
             else:
-                self.assertAlmostEqual(fast_overlap_NM(DQ, w1, w2, m, n), 0.0)
+                assert round(abs(fast_overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) == 0
         DQ, w1, w2 = (1.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
-                self.assertNotAlmostEqual(fast_overlap_NM(DQ, w1, w2, m, n), 1.0)
+                assert round(abs(fast_overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) != 0
             else:
-                self.assertNotAlmostEqual(fast_overlap_NM(DQ, w1, w2, m, n), 0.0)
+                assert round(abs(fast_overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) != 0
         DQ, w1, w2 = (1.00, 0.15, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
-                self.assertNotAlmostEqual(fast_overlap_NM(DQ, w1, w2, m, n), 1.0)
+                assert round(abs(fast_overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) != 0
             else:
-                self.assertNotAlmostEqual(fast_overlap_NM(DQ, w1, w2, m, n), 0.0)
+                assert round(abs(fast_overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) != 0
 
     def test_overlap_NM(self):
         DQ, w1, w2 = (0.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
-                self.assertAlmostEqual(overlap_NM(DQ, w1, w2, m, n), 1.0)
+                assert round(abs(overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) == 0
             else:
-                self.assertAlmostEqual(overlap_NM(DQ, w1, w2, m, n), 0.0)
+                assert round(abs(overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) == 0
         DQ, w1, w2 = (1.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
-                self.assertNotAlmostEqual(overlap_NM(DQ, w1, w2, m, n), 1.0)
+                assert round(abs(overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) != 0
             else:
-                self.assertNotAlmostEqual(overlap_NM(DQ, w1, w2, m, n), 0.0)
+                assert round(abs(overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) != 0
         DQ, w1, w2 = (1.00, 0.15, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
-                self.assertNotAlmostEqual(overlap_NM(DQ, w1, w2, m, n), 1.0)
+                assert round(abs(overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) != 0
             else:
-                self.assertNotAlmostEqual(overlap_NM(DQ, w1, w2, m, n), 0.0)
+                assert round(abs(overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) != 0
 
     def test_analytic_overlap_NM(self):
         DQ, w1, w2 = (0.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
-                self.assertAlmostEqual(analytic_overlap_NM(DQ, w1, w2, m, n), 1.0)
+                assert round(abs(analytic_overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) == 0
             else:
-                self.assertAlmostEqual(analytic_overlap_NM(DQ, w1, w2, m, n), 0.0)
+                assert round(abs(analytic_overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) == 0
         DQ, w1, w2 = (1.00, 0.03, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
-                self.assertNotAlmostEqual(analytic_overlap_NM(DQ, w1, w2, m, n), 1.0)
+                assert round(abs(analytic_overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) != 0
             else:
-                self.assertNotAlmostEqual(analytic_overlap_NM(DQ, w1, w2, m, n), 0.0)
+                assert round(abs(analytic_overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) != 0
         DQ, w1, w2 = (1.00, 0.15, 0.03)
         for m, n in product(range(10), range(10)):
             if m == n:
-                self.assertNotAlmostEqual(analytic_overlap_NM(DQ, w1, w2, m, n), 1.0)
+                assert round(abs(analytic_overlap_NM(DQ, w1, w2, m, n) - 1.0), 7) != 0
             else:
-                self.assertNotAlmostEqual(analytic_overlap_NM(DQ, w1, w2, m, n), 0.0)
+                assert round(abs(analytic_overlap_NM(DQ, w1, w2, m, n) - 0.0), 7) != 0
 
     def test_compare_overlaps(self):
         for DQ, w1, w2 in product([0.0, 0.5, 3.14], [0.03, 0.1], [0.03, 0.5]):
             for m, n in product(range(10), range(10)):
-                self.assertAlmostEqual(
-                    overlap_NM(DQ, w1, w2, m, n), analytic_overlap_NM(DQ, w1, w2, m, n), places=5
+                assert (
+                    round(
+                        abs(overlap_NM(DQ, w1, w2, m, n) - analytic_overlap_NM(DQ, w1, w2, m, n)),
+                        5,
+                    )
+                    == 0
                 )
 
 
@@ -106,29 +111,30 @@ class GetCTest(unittest.TestCase):
         }
 
     def test_normal_run(self):
-        self.assertGreater(get_C(**self.args), 0.0)
+        assert get_C(**self.args) > 0.0
 
     def test_same_w(self):
         self.args["wf"] = self.args["wi"]
-        self.assertGreater(get_C(**self.args), 0.0)
+        assert get_C(**self.args) > 0.0
         self.args["dQ"] = 0.0
-        self.assertLess(get_C(**self.args), 1e-20)
+        assert get_C(**self.args) < 1e-20
 
     def test_analytic(self):
         self.args["overlap_method"] = "analytic"
-        self.assertGreater(get_C(**self.args), 0.0)
+        assert get_C(**self.args) > 0.0
         self.args["overlap_method"] = "Analytic"
-        self.assertGreater(get_C(**self.args), 0.0)
+        assert get_C(**self.args) > 0.0
 
     def test_bad_overlap(self):
         self.args["overlap_method"] = "blah"
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             get_C(**self.args)
 
     def test_cubic(self):
         self.args["sigma"] = "cubic"
-        self.assertGreater(get_C(**self.args), 0.0)
+        assert get_C(**self.args) > 0.0
 
+    @pytest.mark.filterwarnings("ignore:Number of initial")
     def test_cubic_failure(self):
         # should result in a negative C, which doesn't make sense
         self.args = {
@@ -144,37 +150,39 @@ class GetCTest(unittest.TestCase):
             "occ_tol": 1e-5,
             "overlap_method": "Integrate",
         }
-        self.assertLess(get_C(**self.args), 0.0)
+        assert get_C(**self.args) < 0.0
 
         # fixed with pchip
         self.args["sigma"] = "pchip"
-        self.assertGreater(get_C(**self.args), 0.0)
+        assert get_C(**self.args) > 0.0
 
     def test_gaussian(self):
         for sigma in np.linspace(0.1, 5, 5):
             self.args["sigma"] = sigma
-            self.assertGreater(get_C(**self.args), 0.0)
+            assert get_C(**self.args) > 0.0
 
     def test_T(self):
         self.args["T"] = np.linspace(0.01, 1000, 100)
         cs = get_C(**self.args)
-        self.assertEqual(type(cs), np.ndarray)
-        self.assertEqual(len(cs), 100)
+        assert isinstance(cs, np.ndarray)
+        assert len(cs) == 100
         for c in cs:
-            self.assertGreater(c, 0.0)
+            assert c > 0.0
         self.args["T"] = [300]
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             get_C(**self.args)
 
+    @pytest.mark.filterwarnings("ignore:Number of initial")
+    @pytest.mark.filterwarnings("ignore:Large value for Ni")
     def test_occ_tol(self):
         self.args["occ_tol"] = 1e-6
-        self.assertGreater(get_C(**self.args), 0.0)
+        assert get_C(**self.args) > 0.0
         self.args["occ_tol"] = 1.0
         self.args["dE"] = 150 * self.args["wf"]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             get_C(**self.args)
         self.args["sigma"] = "cubic"
-        with self.assertWarns(RuntimeWarning):
+        with pytest.warns(RuntimeWarning):
             get_C(**self.args)
 
 
@@ -182,10 +190,10 @@ class MathTest(unittest.TestCase):
     def test_fact(self):
         for i in range(171):
             exact = np.double(factorial(i, exact=True))
-            self.assertAlmostEqual(fact(i) / exact - 1, 0.0)
+            assert round(abs(fact(i) / exact - 1 - 0.0), 7) == 0
 
     def test_herm(self):
         for x in np.linspace(0.1, 1.0, 50):
             for i in range(70):
                 exact = hermval(x, [0.0] * i + [1.0])
-                self.assertAlmostEqual(herm(x, i) / exact - 1, 0.0)
+                assert round(abs(herm(x, i) / exact - 1 - 0.0), 7) == 0

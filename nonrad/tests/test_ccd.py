@@ -31,53 +31,53 @@ class CCDTest(unittest.TestCase):
 
     def test_get_cc_structures(self):
         gs, es = get_cc_structures(self.gnd_real, self.exd_real, [0.0])
-        self.assertEqual(gs, [])
-        self.assertEqual(es, [])
+        assert gs == []
+        assert es == []
         gs, es = get_cc_structures(self.gnd_test, self.exd_test, [0.0], remove_zero=False)
-        self.assertEqual(self.gnd_test, gs[0])
-        self.assertEqual(self.exd_test, es[0])
+        assert self.gnd_test == gs[0]
+        assert self.exd_test == es[0]
         gs, es = get_cc_structures(self.gnd_test, self.exd_test, [0.5])
-        self.assertTrue(np.allclose(gs[0][0].coords, [0.25, 0.25, 0.25]))
+        assert np.allclose(gs[0][0].coords, [0.25, 0.25, 0.25])
 
     def test_get_dQ(self):
-        self.assertEqual(get_dQ(self.gnd_test, self.gnd_test), 0.0)
-        self.assertEqual(get_dQ(self.exd_test, self.exd_test), 0.0)
-        self.assertEqual(get_dQ(self.gnd_real, self.gnd_real), 0.0)
-        self.assertEqual(get_dQ(self.exd_real, self.exd_real), 0.0)
-        self.assertAlmostEqual(get_dQ(self.gnd_test, self.exd_test), 0.86945, places=4)
-        self.assertAlmostEqual(get_dQ(self.gnd_real, self.exd_real), 1.68587, places=4)
+        assert get_dQ(self.gnd_test, self.gnd_test) == 0.0
+        assert get_dQ(self.exd_test, self.exd_test) == 0.0
+        assert get_dQ(self.gnd_real, self.gnd_real) == 0.0
+        assert get_dQ(self.exd_real, self.exd_real) == 0.0
+        assert round(abs(get_dQ(self.gnd_test, self.exd_test) - 0.86945), 4) == 0
+        assert round(abs(get_dQ(self.gnd_real, self.exd_real) - 1.68587), 4) == 0
 
     def test_get_Q_from_struct(self):
         q = get_Q_from_struct(self.gnd_test, self.exd_test, self.sct_test)
-        self.assertAlmostEqual(q, 0.5 * 0.86945, places=4)
+        assert round(abs(q - 0.5 * 0.86945), 4) == 0
         q = get_Q_from_struct(self.gnd_real, self.exd_real, str(TEST_FILES / "POSCAR.C0.gz"))
-        self.assertAlmostEqual(q, 0.0, places=4)
+        assert round(abs(q - 0.0), 4) == 0
         gs, es = get_cc_structures(
             self.gnd_real, self.exd_real, np.linspace(-0.5, 0.5, 100), remove_zero=False
         )
         Q = 1.68587 * np.linspace(-0.5, 0.5, 100)
         for s, q in zip(gs, Q, strict=False):
             tq = get_Q_from_struct(self.gnd_real, self.exd_real, s)
-            self.assertAlmostEqual(tq, q, places=4)
+            assert round(abs(tq - q), 4) == 0
         for s, q in zip(es, Q + 1.68587, strict=False):
             tq = get_Q_from_struct(self.gnd_real, self.exd_real, s)
-            self.assertAlmostEqual(tq, q, places=4)
+            assert round(abs(tq - q), 4) == 0
 
         # test when one of the coordinates stays the same
         sg = Structure(np.eye(3), ["H"], [[0.0, 0.0, 0.0]])
         sq = Structure(np.eye(3), ["H"], [[0.1, 0.0, 0.1]])
         se = Structure(np.eye(3), ["H"], [[0.2, 0.0, 0.2]])
         dQ = get_dQ(sg, se)
-        self.assertAlmostEqual(get_Q_from_struct(sg, se, sq) / dQ, 0.5)
+        assert round(abs(get_Q_from_struct(sg, se, sq) / dQ - 0.5), 7) == 0
 
     def test_get_PES_from_vaspruns(self):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             q, en = get_PES_from_vaspruns(self.gnd_real, self.exd_real, self.vrs)
-        self.assertEqual(len(q), 2)
-        self.assertEqual(len(en), 2)
-        self.assertEqual(np.min(en), 0.0)
-        self.assertEqual(en[0], 0.0)
+        assert len(q) == 2
+        assert len(en) == 2
+        assert np.min(en) == 0.0
+        assert en[0] == 0.0
 
     def test_get_omega_from_PES(self):
         q = np.linspace(-0.5, 0.5, 20)
@@ -86,16 +86,20 @@ class CCDTest(unittest.TestCase):
             en = 0.5 * omega * (q - q0) ** 2
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                self.assertAlmostEqual(get_omega_from_PES(q, en), om)
-                self.assertAlmostEqual(get_omega_from_PES(q, en, Q0=q0), om)
+                assert round(abs(get_omega_from_PES(q, en) - om), 7) == 0
+                assert round(abs(get_omega_from_PES(q, en, Q0=q0) - om), 7) == 0
         om, q0 = (0.1, 3.0)
-        self.assertAlmostEqual(get_omega_from_PES(q, en, Q0=q0, ax=FakeAx()), om)
-        self.assertAlmostEqual(
-            get_omega_from_PES(q, en, Q0=q0, ax=FakeAx(), q=np.linspace(-1, 1, 100)), om
+        assert round(abs(get_omega_from_PES(q, en, Q0=q0, ax=FakeAx()) - om), 7) == 0
+        assert (
+            round(
+                abs(get_omega_from_PES(q, en, Q0=q0, ax=FakeAx(), q=np.linspace(-1, 1, 100)) - om),
+                7,
+            )
+            == 0
         )
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             q, en = get_PES_from_vaspruns(self.gnd_real, self.exd_real, self.vrs)
             q = np.append(q, [-1 * q[-1]])
             en = np.append(en, [en[-1]])
-            self.assertAlmostEqual(get_omega_from_PES(q, en), 0.0335, places=3)
+            assert round(abs(get_omega_from_PES(q, en) - 0.0335), 3) == 0
