@@ -2,6 +2,7 @@
    :hidden:
 
    installation
+   cli
    compatibility
    citation
    Tutorial<tutorial>
